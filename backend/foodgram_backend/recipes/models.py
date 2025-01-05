@@ -9,8 +9,11 @@ NAME_MAX_LENGTH = 256
 SLUG_MAX_LENGTH = 32
 TAG_MAX_LENGTH = 32
 INGREDIENT_MAX_LENGTH = 128
-MEASURE_MAX_LENGTH = 64
+MEASURE_MAX_LENGTH = 20
 COOKING_TIME_MIN = 1
+MAX_REPR_LENGTH_TAG_INGREDIENT = 10
+MAX_REPR_LENGTH_RECIPE = 20
+TEXT_MAX_LENGTH = 10000
 
 
 class Tag(models.Model):
@@ -19,7 +22,6 @@ class Tag(models.Model):
                             verbose_name='Название')
     slug = models.SlugField(max_length=SLUG_MAX_LENGTH,
                             unique=True,
-                            validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$')],
                             verbose_name='Уникальный слаг')
 
     class Meta:
@@ -27,7 +29,7 @@ class Tag(models.Model):
         verbose_name_plural = 'Тэги'
 
     def __str__(self):
-        return self.name
+        return self.name[:MAX_REPR_LENGTH_TAG_INGREDIENT]
 
 
 class Ingredient(models.Model):
@@ -41,7 +43,7 @@ class Ingredient(models.Model):
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
-        return self.name
+        return self.name[:MAX_REPR_LENGTH_TAG_INGREDIENT]
 
 
 class Recipe(models.Model):
@@ -57,7 +59,8 @@ class Recipe(models.Model):
                                   related_name='recipes',
                                   through='TagRecipe',
                                   verbose_name='Список тегов')
-    text = models.TextField(verbose_name='Описание')
+    text = models.TextField(max_length=TEXT_MAX_LENGTH,
+                            verbose_name='Описание')
     cooking_time = models.SmallIntegerField(
         validators=[MinValueValidator(COOKING_TIME_MIN)],
         verbose_name='Время приготовления (в минутах)'
@@ -73,7 +76,7 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
 
     def __str__(self):
-        return self.name
+        return self.name[:MAX_REPR_LENGTH_RECIPE]
 
 
 class TagRecipe(models.Model):
