@@ -1,0 +1,114 @@
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
+from rest_framework import (filters, permissions,
+                            status, viewsets)
+from rest_framework.response import Response
+import aspose.pdf as ap
+from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
+
+from recipes.models import (Ingredient, IngredientRecipe,
+                            Recipe, ShoppingCart, Tag, Favourite)
+from .serializers import (IngredientSerializer, FavouriteSerializer,
+                          RecipeAddUpdateSerializer,
+                          RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+    search_fields = ('author', 'tags', 'user.favourites')
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [filters.SearchFilter]
+
+    def get_serializer_class(self):
+        if self.request.method not in SAFE_METHODS:
+            return RecipeAddUpdateSerializer
+        return RecipeGetSerializer
+
+    @action(methods=('post', 'delete'),
+            url_path='favorite',
+            detail=True)
+    def favorite(self, request, *args, **kwargs):
+        if request.method == 'POST':
+            serializer = ShoppingCartSerializer(
+                data={
+                    'user': request.user.id,
+                    'recipe': get_object_or_404(Recipe, id=kwargs['pk']).id
+                },
+                context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
+        if request.method == 'DELETE':
+            favourite = get_object_or_404(Favourite,
+                                          recipe=get_object_or_404(Recipe, id=kwargs['pk']),
+                                          user=request.user)
+            favourite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=('post', 'delete'),
+            url_path='shopping-cart',
+            permission_classes=(permissions.IsAuthenticated,),
+            detail=True)
+    def shopping_cart(self, request, *args, **kwargs):
+        if request.method == 'POST':
+            serializer = ShoppingCartSerializer(
+                data={
+                    'user': request.user.id,
+                    'recipe': get_object_or_404(Recipe, id=kwargs['pk']).id
+                },
+                context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
+        if request.method == 'DELETE':
+            shopping_cart = get_object_or_404(ShoppingCart,
+                                              user=request.user,
+                                              recipe=Recipe.objects.get(id=kwargs['pk']))
+            shopping_cart.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=('get',),
+            url_path='download-shopping-cart',
+            permission_classes=(permissions.IsAuthenticated,),
+            detail=False)
+    def download_shopping_cart(self, request, *args, **kwargs):
+        ingredients = IngredientRecipe.objects.filter(
+            recipe__shopping_cart__user=request.user
+        ).values('ingredient__name',
+                 'ingredient__measurement_unit').annotate(quantity=Sum('amount'))
+
+        document = ap.Document()
+
+        page = document.pages.add()
+
+        for ingredient in ingredients:
+            text_fragment = ap.text.TextFragment(
+                f'{ingredient["ingredient__name"]} - {ingredient["quantity"]}, '
+                f'{ingredient["measurement_unit"]}')
+            page.paragraphs.add(text_fragment)
+            document.save('output.pdf')
+
+        response = HttpResponse(document, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="output.pdf"'
+        return response
+
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (permissions.AllowAny,)
+    pagination_class = None
+
+
+class IngredientViewSet(viewsets.ModelViewSet):
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    permission_classes = (permissions.AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
+    pagination_class = None
