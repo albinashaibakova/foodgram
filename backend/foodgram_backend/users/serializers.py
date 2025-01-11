@@ -7,6 +7,13 @@ from .models import Follow
 User = get_user_model()
 
 
+class UserGetTokenSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('email', 'password')
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:

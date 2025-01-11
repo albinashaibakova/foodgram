@@ -6,13 +6,27 @@ from rest_framework import (filters, generics,
                             permissions,
                             status, viewsets)
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 
-
-from .serializers import UserSerializer, FollowSerializer
+from .serializers import UserSerializer, UserGetTokenSerializer, FollowSerializer
 from .models import Follow
 
 User = get_user_model()
+
+
+class UserGetToken(ObtainAuthToken):
+
+    def post(self, request, *args, **kwargs):
+        serializer = UserGetTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        if user:
+            token, created = Token.objects.get_or_create(user=serializer.validated_data['user'])
+            return Response({
+                'token': token.key
+            })
+        return Response('The user does not exist', status=status.HTTP_404_NOT_FOUND)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
