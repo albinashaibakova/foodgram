@@ -47,6 +47,7 @@ class FoodgramUser(AbstractUser):
     )
     avatar = models.BinaryField(
         blank=True,
+        null=True,
         verbose_name='Ссылка на аватар')
     role = models.CharField(
         max_length=ROLE_MAX_LENGTH,

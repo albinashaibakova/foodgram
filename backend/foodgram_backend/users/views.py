@@ -32,17 +32,26 @@ class UsersViewSet(UserViewSet):
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
-    @action(methods=('put',),
+    @action(methods=('put', 'delete'),
             url_path='me/avatar',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
     def set_avatar(self, request):
-        serializer = UserAvatarSerializer(request.user,
-                                          data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(avatar=serializer.validate_avatar(request.data['avatar']))
-        return Response(serializer.data,
-                        status=status.HTTP_200_OK)
+        if request.method == 'PUT':
+            if 'avatar' in request.data:
+                serializer = UserAvatarSerializer(request.user,
+                                                  data=request.data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save(avatar=serializer.validate_avatar(request.data['avatar']))
+                return Response(serializer.data,
+                                status=status.HTTP_200_OK)
+        if request.method == 'DELETE':
+            serializer = UserAvatarSerializer(request.user,
+                                              data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(avatar=None)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
     @action(methods=('get',),
