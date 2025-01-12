@@ -21,7 +21,7 @@ class UserListSerializer(UserSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name',
-                  'last_name', 'email', 'avatar')
+                  'last_name', 'email', 'avatar', 'is_subscribed')
 
 
 class FollowSerializer(serializers.ModelSerializer):
