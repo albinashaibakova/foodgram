@@ -24,6 +24,17 @@ class UserListSerializer(UserSerializer):
                   'last_name', 'email', 'avatar', 'is_subscribed')
 
 
+class UserAvatarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('avatar', )
+
+    def validate_avatar(self, value):
+        if type(value) is str:
+            return value.encode('ascii')
+
+
 class FollowSerializer(serializers.ModelSerializer):
 
     class Meta:

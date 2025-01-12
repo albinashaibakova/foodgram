@@ -1,22 +1,18 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-
+from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework import (permissions,
                             status, viewsets)
 from rest_framework.response import Response
 
-from .serializers import FollowSerializer
+from .serializers import FollowSerializer, UserListSerializer, UserAvatarSerializer
 from .models import Follow
 
 User = get_user_model()
 
 
-class UsersViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    #serializer_class = UserViewSetSerializer
-    permission_classes = [permissions.AllowAny]
-
+class UsersViewSet(UserViewSet):
     @action(methods=('get', 'patch'),
             url_path='me',
             permission_classes=(permissions.IsAuthenticated,),
@@ -25,16 +21,29 @@ class UsersViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             user = get_object_or_404(User,
                                      username=request.user.username)
-            #serializer = UserViewSetSerializer(user)
+            serializer = UserListSerializer(user)
             return Response(serializer.data,
                             status=status.HTTP_200_OK)
-        serializer = UserViewSetSerializer(request.user,
-                                    data=request.data,
-                                    partial=True)
+        serializer = UserListSerializer(request.user,
+                                        data=request.data,
+                                        partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(role=request.user.role)
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
+
+    @action(methods=('put',),
+            url_path='me/avatar',
+            permission_classes=(permissions.IsAuthenticated,),
+            detail=False)
+    def set_avatar(self, request):
+        serializer = UserAvatarSerializer(request.user,
+                                          data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(avatar=serializer.validate_avatar(request.data['avatar']))
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
+
 
     @action(methods=('get',),
             url_path='subscriptions',
