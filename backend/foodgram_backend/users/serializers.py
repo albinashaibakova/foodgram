@@ -16,12 +16,12 @@ class UserSignUpSerializer(UserCreateSerializer):
                   'last_name', 'password')
 
 
-#class UserViewSetSerializer(UserSerializer):
+class UserListSerializer(UserSerializer):
 
- #   class Meta:
- #       model = User
- #       fields = ('email', 'id', 'username', 'first_name',
- #                 'last_name')
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name',
+                  'last_name', 'email', 'avatar')
 
 
 class FollowSerializer(serializers.ModelSerializer):

@@ -63,6 +63,17 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 6
 }
 
+DJOSER = {
+    'SERIALIZERS': {
+        'user': 'users.serializers.UserListSerializer'
+    },
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['rest_framework.permissions.AllowAny'],
+    },
+    'HIDE_USERS': False
+}
+
 ROOT_URLCONF = 'foodgram_backend.urls'
 
 TEMPLATES = [
