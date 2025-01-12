@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 
+from djoser.serializers import UserCreateSerializer, UserSerializer
+
 from rest_framework import serializers
 
 from .models import Follow
@@ -7,19 +9,19 @@ from .models import Follow
 User = get_user_model()
 
 
-class UserGetTokenSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('email', 'password')
-
-
-class UserSerializer(serializers.ModelSerializer):
-
+class UserSignUpSerializer(UserCreateSerializer):
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name')
+                  'last_name', 'password')
+
+
+#class UserViewSetSerializer(UserSerializer):
+
+ #   class Meta:
+ #       model = User
+ #       fields = ('email', 'id', 'username', 'first_name',
+ #                 'last_name')
 
 
 class FollowSerializer(serializers.ModelSerializer):

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'djoser',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig'
 ]
@@ -61,7 +62,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 6
 }
-
 
 ROOT_URLCONF = 'foodgram_backend.urls'
 
