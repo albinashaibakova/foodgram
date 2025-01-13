@@ -1,9 +1,15 @@
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from recipes.models import Ingredient, Favourite, Recipe, Tag, ShoppingCart, IngredientRecipe
+from recipes.models import Ingredient, Favourite, Recipe, Tag, ShoppingCart, IngredientRecipe, TagRecipe
 
 from users.serializers import UserListSerializer
 
+
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'name', 'slug')
 
 class IngredientSerializer(serializers.ModelSerializer):
 
@@ -34,7 +40,10 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     ingredients = IngredientGetSerializer(many=True, read_only=True,
                                           source='recipe_ingredients')
     author = UserListSerializer()
+
     image = Base64ImageField()
+    tags = TagSerializer(many=True, read_only=True)
+
 
     class Meta:
         model = Recipe
@@ -49,19 +58,24 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     )
     author = UserListSerializer(read_only=True)
     image = Base64ImageField()
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
 
     class Meta:
         model = Recipe
         fields = '__all__'
 
     def create(self, validated_data):
-        print(validated_data)
         ingredients = validated_data.pop('recipe_ingredients')
+        tags = validated_data.pop('tags')
 
         recipe = Recipe.objects.create(
             author=self.context['request'].user,
             **validated_data
         )
+        recipe.tags.set(tags)
 
         for recipe_ingredient in ingredients:
             ingredient = Ingredient.objects.get(id=recipe_ingredient['id'])
@@ -81,12 +95,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             instance,
             context={'request': request}
         ).data
-
-class TagSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Tag
-        fields = ('id', 'name', 'slug')
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
