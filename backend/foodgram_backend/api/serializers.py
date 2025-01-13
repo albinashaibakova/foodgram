@@ -61,7 +61,8 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeSerializer(
         many=True, source='recipe_ingredients'
     )
-    author = UserListSerializer(read_only=True)
+    author = serializers.HiddenField(
+        default=serializers.CurrentUserDefault())
     image = Base64ImageField()
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
@@ -78,10 +79,10 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Отсутствуют ингредиенты!')
         ingredient_list = []
         for recipe_ingredient in ingredients:
-            ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
-            if ingredient in ingredient_list:
+            recipe_ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
+            if recipe_ingredient in ingredient_list:
                 raise serializers.ValidationError('Ингредиенты повторяются')
-            ingredient_list.append(ingredient)
+            ingredient_list.append(recipe_ingredient)
         return ingredients
 
     def validate_tags(self, tags):
@@ -93,11 +94,12 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Тэги повторяются')
             tag_list.append(tag)
         return tags
+
     @staticmethod
     def add_ingredients_tags(recipe, ingredients, tags):
         recipe.tags.set(tags)
         for recipe_ingredient in ingredients:
-            ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
+            ingredient = Ingredient.objects.get(id=recipe_ingredient['id'])
             IngredientRecipe.objects.create(ingredient=ingredient,
                                             recipe=recipe,
                                             amount=recipe_ingredient['amount'])
@@ -106,11 +108,9 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('recipe_ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(
-            author=self.context['request'].user,
-            **validated_data
-        )
-        return self.add_ingredients_tags(recipe, ingredients, tags)
+        recipe = super().create(validated_data)
+        self.add_ingredients_tags(recipe, ingredients, tags)
+        return recipe
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop('recipe_ingredients')
