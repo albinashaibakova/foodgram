@@ -72,6 +72,7 @@ class Recipe(models.Model):
                                               default=False)
 
     class Meta:
+        default_related_name = 'recipe'
         verbose_name = 'рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -88,7 +89,8 @@ class TagRecipe(models.Model):
 
 
 class IngredientRecipe(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
+                               related_name='recipe_ingredients',)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     amount = models.DecimalField(validators=[MinValueValidator(1)],
                                  max_digits=5,

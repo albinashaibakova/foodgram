@@ -27,6 +27,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeAddUpdateSerializer
         return RecipeGetSerializer
 
+
     @action(methods=('post', 'delete'),
             url_path='favorite',
             detail=True)
