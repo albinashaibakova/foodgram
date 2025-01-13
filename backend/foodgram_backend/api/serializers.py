@@ -69,25 +69,42 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
 
-    def create(self, validated_data):
-        if not validated_data['recipe_ingredients']:
-            raise serializers.ValidationError('Отсутствуют ингредиенты!')
-        if not validated_data['tags']:
-            raise serializers.ValidationError('Отсутствуют тэги!')
-        ingredients = validated_data.pop('recipe_ingredients')
-        tags = validated_data.pop('tags')
 
-        recipe = Recipe.objects.create(
-            author=self.context['request'].user,
-            **validated_data
-        )
-        recipe.tags.set(tags)
+    def validate_ingredients(self, ingredients):
+        if not ingredients:
+            raise serializers.ValidationError('Отсутствуют ингредиенты!')
         ingredient_list = []
         for recipe_ingredient in ingredients:
             ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
             if ingredient in ingredient_list:
                 raise serializers.ValidationError('Ингредиенты повторяются')
             ingredient_list.append(ingredient)
+        return ingredients
+
+    def validate_tags(self, tags):
+        if not tags:
+            raise serializers.ValidationError('Отсутствуют тэги!')
+        tag_list = []
+        for tag in tags:
+            tag_for_recipe = get_object_or_404(Tag, id=tag['id'])
+            if tag_for_recipe in tag_list:
+                raise serializers.ValidationError('Тэги повторяются')
+            tag_list.append(tag)
+        return tags
+
+
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(
+            author=self.context['request'].user,
+            **validated_data
+        )
+        recipe.tags.set(tags)
+
+        for recipe_ingredient in ingredients:
+            ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
             amount = recipe_ingredient['amount']
             IngredientRecipe.objects.create(ingredient=ingredient,
                                             recipe=recipe,
