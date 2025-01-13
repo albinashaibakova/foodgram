@@ -1,3 +1,4 @@
+from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -92,15 +93,14 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Тэги повторяются')
             tag_list.append(tag)
         return tags
-
-    def add_ingredients_tags(self, recipe, ingredients, tags):
+    @staticmethod
+    def add_ingredients_tags(recipe, ingredients, tags):
         recipe.tags.set(tags)
         for recipe_ingredient in ingredients:
             ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
-            amount = recipe_ingredient['amount']
-            IngredientRecipe.objects.update_or_create(ingredient=ingredient,
+            IngredientRecipe.objects.create(ingredient=ingredient,
                                             recipe=recipe,
-                                            amount=amount)
+                                            amount=recipe_ingredient['amount'])
         return recipe
 
     def create(self, validated_data):
@@ -113,15 +113,15 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         return self.add_ingredients_tags(recipe, ingredients, tags)
 
     def update(self, instance, validated_data):
-        ingredients = validated_data['recipe_ingredients']
+        ingredients = validated_data.pop('recipe_ingredients')
         tags = validated_data.pop('tags')
-        instance.ingredients.clear()
-        recipe = Recipe.objects.create(
-            author=self.context['request'].user,
-            **validated_data
-        )
-        recipe.tags.set(tags)
-        return self.add_ingredients_tags(recipe, ingredients, tags)
+        instance.tags.clear()
+        instance.tags.set(tags)
+        IngredientRecipe.objects.filter(recipe=instance).delete()
+        super().update(instance, validated_data)
+        self.add_ingredients_tags(instance, ingredients, tags)
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         request = self.context.get('request')
