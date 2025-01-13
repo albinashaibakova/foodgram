@@ -22,6 +22,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+    amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientRecipe
@@ -32,6 +33,7 @@ class IngredientGetSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
     measurement_unit = serializers.CharField(source='ingredient.measurement_unit')
+    amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientRecipe
@@ -86,30 +88,29 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Отсутствуют тэги!')
         tag_list = []
         for tag in tags:
-            tag_for_recipe = get_object_or_404(Tag, id=tag['id'])
-            if tag_for_recipe in tag_list:
+            if tag in tag_list:
                 raise serializers.ValidationError('Тэги повторяются')
             tag_list.append(tag)
         return tags
 
-
+    def add_ingredients_tags(self, recipe, ingredients, tags):
+        recipe.tags.set(tags)
+        for recipe_ingredient in ingredients:
+            ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
+            amount = recipe_ingredient['amount']
+            IngredientRecipe.objects.update_or_create(ingredient=ingredient,
+                                            recipe=recipe,
+                                            amount=amount)
+        return recipe
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
+        ingredients = validated_data.pop('recipe_ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(
             author=self.context['request'].user,
             **validated_data
         )
-        recipe.tags.set(tags)
-
-        for recipe_ingredient in ingredients:
-            ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
-            amount = recipe_ingredient['amount']
-            IngredientRecipe.objects.create(ingredient=ingredient,
-                                            recipe=recipe,
-                                            amount=amount)
-        return recipe
+        return self.add_ingredients_tags(recipe, ingredients, tags)
 
     def update(self, instance, validated_data):
         ingredients = validated_data['recipe_ingredients']
@@ -120,17 +121,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             **validated_data
         )
         recipe.tags.set(tags)
-        ingredient_list = []
-        for recipe_ingredient in ingredients:
-            ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
-            if ingredient in ingredient_list:
-                raise serializers.ValidationError('Ингредиенты повторяются')
-            ingredient_list.append(ingredient)
-            amount = recipe_ingredient['amount']
-            IngredientRecipe.objects.update(ingredient=ingredient,
-                                            recipe=recipe,
-                                            amount=amount)
-        return recipe
+        return self.add_ingredients_tags(recipe, ingredients, tags)
 
     def to_representation(self, instance):
         request = self.context.get('request')

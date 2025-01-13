@@ -21,7 +21,7 @@ class UserListSerializer(UserSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name',
-                  'last_name', 'email', 'avatar', 'is_subscribed')
+                  'last_name', 'email', 'is_subscribed', 'avatar')
 
 
 class UserAvatarSerializer(serializers.ModelSerializer):

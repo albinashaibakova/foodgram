@@ -92,10 +92,8 @@ class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                related_name='recipe_ingredients',)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.DecimalField(validators=[MinValueValidator(1)],
-                                 max_digits=5,
-                                 decimal_places=2,
-                                 verbose_name='Количество')
+    amount = models.PositiveIntegerField(validators=[MinValueValidator(1)],
+                                         verbose_name='Количество')
 
     def __str__(self):
         return f'{self.recipe.name} содержит {self.ingredient}'
