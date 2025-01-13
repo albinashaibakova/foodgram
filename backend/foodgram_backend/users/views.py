@@ -69,20 +69,20 @@ class UsersViewSet(UserViewSet):
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
     def subscribe(self, request, *args, **kwargs):
+        user = request.user
+        following = get_object_or_404(User, id=kwargs['id'])
+
         if request.method == 'POST':
             serializer = FollowSerializer(
-                data={
-                    'user': request.user.id,
-                    'following': get_object_or_404(User, id=kwargs['pk']).id
-                },
-                context={'request': request}
+            data={'user': user.id, 'following': following.id},
+            context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(user=user, following=following)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            if not Follow.objects.filter(user=request.user, following=kwargs['pk']).exists():
+            if not Follow.objects.filter(user=request.user, following=kwargs['id']).exists():
                 return Response(
                     {'Error': 'You are not following this user'},
                     status=status.HTTP_400_BAD_REQUEST

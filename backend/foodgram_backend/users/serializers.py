@@ -36,6 +36,7 @@ class UserAvatarSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    user = UserListSerializer(read_only=True)
 
     class Meta:
         model = Follow
