@@ -65,8 +65,7 @@ class Recipe(models.Model):
         validators=[MinValueValidator(COOKING_TIME_MIN)],
         verbose_name='Время приготовления (в минутах)'
     )
-    image = models.ImageField(verbose_name='Ссылка на картинку на сайте',
-                               blank=True)
+    image = models.ImageField(verbose_name='Ссылка на картинку на сайте')
     is_favorited = models.BooleanField(verbose_name='Находится ли в избранном',
                                        default=False)
     is_in_shopping_cart = models.BooleanField(verbose_name='Находится ли в корзине',

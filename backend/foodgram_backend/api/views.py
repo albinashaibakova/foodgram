@@ -18,9 +18,10 @@ from .serializers import (IngredientSerializer, FavouriteSerializer,
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    search_fields = ('author', 'tags', 'user.favourites')
+    search_fields = ('author.id', 'tags', 'user.favourites')
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.SearchFilter]
+    filterset_fields = ('author',)
 
     def get_serializer_class(self):
         if self.request.method not in SAFE_METHODS:
