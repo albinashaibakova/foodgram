@@ -2,17 +2,27 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
-from rest_framework import (permissions,
+from rest_framework import (permissions, pagination,
                             status, viewsets)
 from rest_framework.response import Response
 
-from .serializers import FollowSerializer, UserListSerializer, UserAvatarSerializer
+from api.serializers import FollowSerializer
+from .serializers import UserListSerializer, UserAvatarSerializer
 from .models import Follow
 
 User = get_user_model()
 
 
+
+class FoodgramPaginator(pagination.PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class UsersViewSet(UserViewSet):
+
+
     @action(methods=('get', 'patch'),
             url_path='me',
             permission_classes=(permissions.IsAuthenticated,),
@@ -58,11 +68,15 @@ class UsersViewSet(UserViewSet):
             url_path='subscriptions',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
-    def get_subscriptions(self, request):
+    def get_subscriptions(self, request, **kwargs):
+        recipes_limit = request.query_params.get('recipes_limit')
+        kwargs['recipes_limit'] = recipes_limit
         subscriptions = Follow.objects.filter(user=request.user)
-        serializer = FollowSerializer(subscriptions, many=True)
+        paginator = FoodgramPaginator()
+        paginated_subscriptions = paginator.paginate_queryset(subscriptions, request)
+        serializer = FollowSerializer(paginated_subscriptions, many=True, **kwargs)
+        return paginator.get_paginated_response(serializer.data)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=('post', 'delete',),
             url_path='subscribe',
@@ -70,12 +84,14 @@ class UsersViewSet(UserViewSet):
             detail=True)
     def subscribe(self, request, *args, **kwargs):
         user = request.user
-        following = get_object_or_404(User, id=kwargs['id'])
+        following = get_object_or_404(User, id=kwargs.pop('id'))
+        recipes_limit = request.query_params.get('recipes_limit')
+        kwargs['recipes_limit'] = recipes_limit
 
         if request.method == 'POST':
             serializer = FollowSerializer(
             data={'user': user.id, 'following': following.id},
-            context={'request': request}
+            context={'request': request}, **kwargs
             )
             serializer.is_valid(raise_exception=True)
             serializer.save(user=user, following=following)

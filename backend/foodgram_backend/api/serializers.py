@@ -6,6 +6,7 @@ from recipes.models import Ingredient, Favourite, Recipe, Tag, ShoppingCart, Ing
 from rest_framework.exceptions import ValidationError
 
 from users.serializers import UserListSerializer
+from users.models import Follow
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -39,6 +40,13 @@ class IngredientGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
+
+
+class RecipeShortSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
@@ -134,10 +142,67 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
 class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
-        fields = ('recipe', 'user')
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        serializer = Recipe()
 
 
 class FavouriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favourite
         fields = '__all__'
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    user = UserListSerializer(read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        self.recipes_limit = kwargs.pop('recipes_limit', None)
+        super(FollowSerializer, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Follow
+        fields = '__all__'
+
+
+    def to_representation(self, instance, **kwargs):
+        recipes_limit = self.recipes_limit
+        kwargs['recipes_limit'] = recipes_limit
+        serializer = FollowGetSerializer(instance, **kwargs)
+        return serializer.data
+
+    def validate(self, data):
+        if self.context['request'].user.id == data['following'].id:
+            raise ValidationError('Вы не можете подписаться на себя!')
+        return data
+
+class FollowGetSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+    first_name = serializers.ReadOnlyField(source='user.first_name')
+    last_name = serializers.ReadOnlyField(source='user.last_name')
+    email = serializers.ReadOnlyField(source='user.email')
+    is_subscribed = serializers.ReadOnlyField(source='user.is_subscribed')
+    avatar = serializers.ReadOnlyField(source='user.avatar')
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Follow
+        fields = ('id', 'username', 'first_name', 'last_name', 'email',
+        'is_subscribed', 'recipes', 'recipes_count', 'avatar')
+
+    def __init__(self, *args, **kwargs):
+        self.recipes_limit = kwargs.pop('recipes_limit', None)
+        super(FollowGetSerializer, self).__init__(*args, **kwargs)
+
+    def get_recipes(self, obj):
+        if self.recipes_limit:
+            recipes_limit = int(self.recipes_limit)
+            recipes = Recipe.objects.filter(author=obj.user)[:recipes_limit]
+        else:
+            recipes = Recipe.objects.filter(author=obj.user)
+        return RecipeShortSerializer(recipes, many=True).data
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj.user).count()
