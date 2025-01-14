@@ -15,13 +15,14 @@ from recipes.models import (Ingredient, IngredientRecipe,
 from .serializers import (IngredientSerializer, FavouriteSerializer,
                           RecipeAddUpdateSerializer,
                           RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
+from .permissions import IsOwnerOrReadOnly
 
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     search_fields = ('author.id', 'tags', 'user.favourites')
-    permission_classes = [permissions.AllowAny]
+    permission_classes = (IsOwnerOrReadOnly, )
     filter_backends = [filters.SearchFilter]
     filterset_fields = ('author',)
 
