@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django_filters',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
-    'django_url_shortener'
+    'shortener.apps.ShortenerConfig',
 ]
 
 MIDDLEWARE = [

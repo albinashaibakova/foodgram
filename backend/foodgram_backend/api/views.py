@@ -11,14 +11,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from recipes.models import (Ingredient, IngredientRecipe,
                             Recipe, ShoppingCart, Tag, Favourite)
-from rest_framework.reverse import reverse
-
-from shortener.serializers import ShortenerSerializer
 
 from .serializers import (IngredientSerializer, FavouriteSerializer,
                           RecipeAddUpdateSerializer,
                           RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
-from ..shortener.models import LinkShortener
+
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
