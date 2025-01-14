@@ -145,7 +145,9 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        serializer = Recipe()
+        recipe = instance.recipe
+        serializer = RecipeShortSerializer(recipe)
+        return serializer.data
 
 
 class FavouriteSerializer(serializers.ModelSerializer):
