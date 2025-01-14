@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 from users.serializers import UserListSerializer
 from users.models import Follow
 
+
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -150,15 +151,20 @@ class FavouriteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class FollowSerializer(serializers.ModelSerializer):
     user = UserListSerializer(read_only=True)
+
     class Meta:
         model = Follow
         fields = '__all__'
 
     def to_representation(self, instance):
         return FollowGetSerializer(instance).data
+
+    def validate(self, data):
+        if self.context['request'].user.id == data['following'].id:
+            raise ValidationError('Вы не можете подписаться на себя!')
+        return data
 
 class FollowGetSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')

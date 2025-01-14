@@ -32,3 +32,4 @@ class UserAvatarSerializer(serializers.ModelSerializer):
     def validate_avatar(self, value):
         if type(value) is str:
             return value.encode('ascii')
+
