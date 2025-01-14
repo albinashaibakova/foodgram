@@ -57,7 +57,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             favourite = get_object_or_404(Favourite,
-                                          recipe=get_object_or_404(Recipe, id=kwargs['pk']),
+                                          recipe=get_object_or_404(Recipe, id=kwargs['pk'].id),
                                           user=request.user)
             favourite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)

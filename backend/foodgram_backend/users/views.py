@@ -98,11 +98,12 @@ class UsersViewSet(UserViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            if not Follow.objects.filter(user=request.user, following=kwargs['id']).exists():
+            if not Follow.objects.filter(user=user,
+                                         following=following).exists():
                 return Response(
                     {'Error': 'You are not following this user'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            Follow.objects.get(user=request.user,
-                               following=get_object_or_404(User, id=kwargs['pk'])).delete()
+            Follow.objects.get(user=user,
+                               following=following).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
