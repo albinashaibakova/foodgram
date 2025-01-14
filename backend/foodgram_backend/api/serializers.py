@@ -142,7 +142,10 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
 class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
-        fields = ('recipe', 'user')
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        serializer = Recipe()
 
 
 class FavouriteSerializer(serializers.ModelSerializer):

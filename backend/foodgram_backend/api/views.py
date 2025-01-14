@@ -53,7 +53,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=('post', 'delete'),
-            url_path='shopping-cart',
+            url_path='shopping_cart',
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
     def shopping_cart(self, request, *args, **kwargs):
@@ -68,7 +68,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data,
-                            status=status.HTTP_200_OK)
+                            status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             shopping_cart = get_object_or_404(ShoppingCart,
                                               user=request.user,
