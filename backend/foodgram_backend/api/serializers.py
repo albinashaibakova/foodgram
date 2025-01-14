@@ -155,6 +155,11 @@ class FavouriteSerializer(serializers.ModelSerializer):
         model = Favourite
         fields = '__all__'
 
+    def to_representation(self, instance):
+        recipe = instance.recipe
+        serializer = RecipeShortSerializer(recipe)
+        return serializer.data
+
 
 class FollowSerializer(serializers.ModelSerializer):
     user = UserListSerializer(read_only=True)

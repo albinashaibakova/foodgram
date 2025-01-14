@@ -116,6 +116,10 @@ class Favourite(models.Model):
     def __str__(self):
         return f'{self.recipe.name}'
 
+    class Meta:
+        verbose_name = 'Рецепты в корзине'
+        unique_together = (('user', 'recipe'),)
+
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(User,
