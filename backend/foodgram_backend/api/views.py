@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework import (filters, permissions,
@@ -11,9 +11,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from recipes.models import (Ingredient, IngredientRecipe,
                             Recipe, ShoppingCart, Tag, Favourite)
+from rest_framework.reverse import reverse
+
+from shortener.serializers import ShortenerSerializer
+
 from .serializers import (IngredientSerializer, FavouriteSerializer,
                           RecipeAddUpdateSerializer,
                           RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
+from ..shortener.models import LinkShortener
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -27,6 +32,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method not in SAFE_METHODS:
             return RecipeAddUpdateSerializer
         return RecipeGetSerializer
+
+
+    @action(detail=True, methods=('get', ),
+            permission_classes=(permissions.AllowAny, ),
+            url_path='get-link')
+    def get_short_link(self, request, pk=None):
+        pass
 
 
     @action(methods=('post', 'delete'),
