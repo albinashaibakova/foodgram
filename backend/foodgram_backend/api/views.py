@@ -80,9 +80,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
-            shopping_cart = get_object_or_404(ShoppingCart,
-                                              user=request.user,
-                                              recipe=Recipe.objects.get(id=kwargs['pk']))
+            if not ShoppingCart.objects.filter(
+                    user=request.user,
+                    recipe=get_object_or_404(Recipe, id=kwargs['pk'])).exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            shopping_cart = ShoppingCart.objects.filter(
+                    user=request.user,
+                    recipe=get_object_or_404(Recipe, id=kwargs['pk']))
             shopping_cart.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
