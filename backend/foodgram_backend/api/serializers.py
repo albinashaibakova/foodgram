@@ -153,7 +153,6 @@ class FavouriteSerializer(serializers.ModelSerializer):
 
 class FollowSerializer(serializers.ModelSerializer):
     user = UserListSerializer(read_only=True)
-
     class Meta:
         model = Follow
         fields = '__all__'

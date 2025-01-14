@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
-from rest_framework import (permissions,
+from rest_framework import (permissions, pagination,
                             status, viewsets)
 from rest_framework.response import Response
 
@@ -11,6 +11,13 @@ from .serializers import UserListSerializer, UserAvatarSerializer
 from .models import Follow
 
 User = get_user_model()
+
+
+
+class FoodgramPaginator(pagination.PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 class UsersViewSet(UserViewSet):
@@ -61,9 +68,12 @@ class UsersViewSet(UserViewSet):
             detail=False)
     def get_subscriptions(self, request):
         subscriptions = Follow.objects.filter(user=request.user)
-        serializer = FollowSerializer(subscriptions, many=True)
+        paginator = FoodgramPaginator()
+        paginated_subscriptions = paginator.paginate_queryset(subscriptions, request)
+        serializer = FollowSerializer(paginated_subscriptions,
+                                      many=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return paginator.get_paginated_response(serializer.data)
 
 
     @action(methods=('post', 'delete',),
