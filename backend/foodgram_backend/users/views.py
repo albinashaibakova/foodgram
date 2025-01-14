@@ -6,7 +6,8 @@ from rest_framework import (permissions,
                             status, viewsets)
 from rest_framework.response import Response
 
-from .serializers import FollowSerializer, UserListSerializer, UserAvatarSerializer
+from api.serializers import FollowSerializer
+from .serializers import UserListSerializer, UserAvatarSerializer
 from .models import Follow
 
 User = get_user_model()
@@ -63,6 +64,7 @@ class UsersViewSet(UserViewSet):
         serializer = FollowSerializer(subscriptions, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
     @action(methods=('post', 'delete',),
             url_path='subscribe',

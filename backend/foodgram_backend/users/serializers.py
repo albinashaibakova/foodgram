@@ -4,7 +4,6 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from rest_framework import serializers
 
-from .models import Follow
 
 User = get_user_model()
 
@@ -33,11 +32,3 @@ class UserAvatarSerializer(serializers.ModelSerializer):
     def validate_avatar(self, value):
         if type(value) is str:
             return value.encode('ascii')
-
-
-class FollowSerializer(serializers.ModelSerializer):
-    user = UserListSerializer(read_only=True)
-
-    class Meta:
-        model = Follow
-        fields = '__all__'
