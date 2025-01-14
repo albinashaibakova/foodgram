@@ -86,7 +86,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=('get',),
-            url_path='download-shopping-cart',
+            url_path='download_shopping_cart',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
     def download_shopping_cart(self, request, *args, **kwargs):
@@ -102,7 +102,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for ingredient in ingredients:
             text_fragment = ap.text.TextFragment(
                 f'{ingredient["ingredient__name"]} - {ingredient["quantity"]}, '
-                f'{ingredient["measurement_unit"]}')
+                f'{ingredient["ingredient__measurement_unit"]}')
             page.paragraphs.add(text_fragment)
             document.save('output.pdf')
 

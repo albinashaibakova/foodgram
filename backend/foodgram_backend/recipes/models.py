@@ -129,6 +129,7 @@ class ShoppingCart(models.Model):
 
     class Meta:
         verbose_name = 'Рецепты в корзине'
+        unique_together = (('user', 'recipe'),)
 
     def __str__(self):
         return f'{self.recipe.name}'
