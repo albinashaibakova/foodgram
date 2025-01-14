@@ -154,12 +154,20 @@ class FavouriteSerializer(serializers.ModelSerializer):
 class FollowSerializer(serializers.ModelSerializer):
     user = UserListSerializer(read_only=True)
 
+    def __init__(self, *args, **kwargs):
+        self.recipes_limit = kwargs.pop('recipes_limit', None)
+        super(FollowSerializer, self).__init__(*args, **kwargs)
+
     class Meta:
         model = Follow
         fields = '__all__'
 
-    def to_representation(self, instance):
-        return FollowGetSerializer(instance).data
+
+    def to_representation(self, instance, **kwargs):
+        recipes_limit = self.recipes_limit
+        kwargs['recipes_limit'] = recipes_limit
+        serializer = FollowGetSerializer(instance, **kwargs)
+        return serializer.data
 
     def validate(self, data):
         if self.context['request'].user.id == data['following'].id:
@@ -181,9 +189,16 @@ class FollowGetSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'first_name', 'last_name', 'email',
         'is_subscribed', 'recipes', 'recipes_count', 'avatar')
 
+    def __init__(self, *args, **kwargs):
+        self.recipes_limit = kwargs.pop('recipes_limit', None)
+        super(FollowGetSerializer, self).__init__(*args, **kwargs)
 
     def get_recipes(self, obj):
-        recipes = Recipe.objects.filter(author=obj.user)
+        if self.recipes_limit:
+            recipes_limit = int(self.recipes_limit)
+            recipes = Recipe.objects.filter(author=obj.user)[:recipes_limit]
+        else:
+            recipes = Recipe.objects.filter(author=obj.user)
         return RecipeShortSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):

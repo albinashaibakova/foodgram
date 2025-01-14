@@ -21,6 +21,8 @@ class FoodgramPaginator(pagination.PageNumberPagination):
 
 
 class UsersViewSet(UserViewSet):
+
+
     @action(methods=('get', 'patch'),
             url_path='me',
             permission_classes=(permissions.IsAuthenticated,),
@@ -66,13 +68,13 @@ class UsersViewSet(UserViewSet):
             url_path='subscriptions',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
-    def get_subscriptions(self, request):
+    def get_subscriptions(self, request, **kwargs):
+        recipes_limit = request.query_params.get('recipes_limit')
+        kwargs['recipes_limit'] = recipes_limit
         subscriptions = Follow.objects.filter(user=request.user)
         paginator = FoodgramPaginator()
         paginated_subscriptions = paginator.paginate_queryset(subscriptions, request)
-        serializer = FollowSerializer(paginated_subscriptions,
-                                      many=True)
-
+        serializer = FollowSerializer(paginated_subscriptions, many=True, **kwargs)
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -82,12 +84,14 @@ class UsersViewSet(UserViewSet):
             detail=True)
     def subscribe(self, request, *args, **kwargs):
         user = request.user
-        following = get_object_or_404(User, id=kwargs['id'])
+        following = get_object_or_404(User, id=kwargs.pop('id'))
+        recipes_limit = request.query_params.get('recipes_limit')
+        kwargs['recipes_limit'] = recipes_limit
 
         if request.method == 'POST':
             serializer = FollowSerializer(
             data={'user': user.id, 'following': following.id},
-            context={'request': request}
+            context={'request': request}, **kwargs
             )
             serializer.is_valid(raise_exception=True)
             serializer.save(user=user, following=following)
