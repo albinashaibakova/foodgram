@@ -139,26 +139,26 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         ).data
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
+class FavouriteShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
+        fields = ('user', 'recipe',)
+
+    def to_representation(self, instance):
+        recipe = instance.recipe
+        serializer = RecipeShortSerializer(recipe)
+        return serializer.data
+
+
+class ShoppingCartSerializer(FavouriteShoppingCartSerializer):
+
+    class Meta(FavouriteShoppingCartSerializer.Meta):
         model = ShoppingCart
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        recipe = instance.recipe
-        serializer = RecipeShortSerializer(recipe)
-        return serializer.data
 
 
-class FavouriteSerializer(serializers.ModelSerializer):
-    class Meta:
+class FavouriteSerializer(FavouriteShoppingCartSerializer):
+
+    class Meta(FavouriteShoppingCartSerializer.Meta):
         model = Favourite
-        fields = '__all__'
-
-    def to_representation(self, instance):
-        recipe = instance.recipe
-        serializer = RecipeShortSerializer(recipe)
-        return serializer.data
 
 
 class FollowSerializer(serializers.ModelSerializer):
