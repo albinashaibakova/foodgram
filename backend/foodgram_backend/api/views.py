@@ -41,18 +41,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
             url_path='get-link')
     def get_short_link(self, request, pk=None, **kwargs):
         long_url = self.request.build_absolute_uri()
-        if LinkShortener.objects.filter(long_url=long_url).exists():
-            slug = LinkShortener.objects.get(long_url=long_url).slug
-            return redirect(reverse('shortener:short_link', kwargs={'slug':slug}))
-        slug = ''.join(random.choice(string.ascii_letters)
-                       for x in range(10))
-        serializer = ShortenerSerializer(data={
-                                                  'long_url': long_url,
-                                                  'slug': slug,
-                                              }
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if not LinkShortener.objects.filter(long_url=long_url).exists():
+            serializer = ShortenerSerializer(data={'long_url': long_url})
+            serializer.is_valid(raise_exception=True)
+            print(serializer.validated_data)
+            serializer.save()
+        slug = LinkShortener.objects.get(long_url=long_url).slug
         return redirect(reverse('shortener:short_link', kwargs={'slug':slug}))
 
 
