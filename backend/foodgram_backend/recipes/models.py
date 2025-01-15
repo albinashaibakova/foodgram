@@ -99,39 +99,32 @@ class IngredientRecipe(models.Model):
         return f'{self.recipe.name} содержит {self.ingredient}'
 
 
-class Favourite(models.Model):
+class FavoriteShoppingCartBaseModel(models.Model):
     recipe = models.ForeignKey(Recipe,
-                               on_delete=models.CASCADE,
-                               related_name='favourites',
-                               verbose_name='Рецепты в избранном')
+                               on_delete=models.CASCADE)
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             related_name='favourites',
                              verbose_name='Автор рецепта')
 
     class Meta:
+        abstract = True
+        unique_together = (('user', 'recipe'),)
+
+    def __str__(self):
+        return f'{self.recipe.name}'
+
+
+class Favourite(FavoriteShoppingCartBaseModel):
+
+    class Meta(FavoriteShoppingCartBaseModel.Meta):
         verbose_name = 'Рецепт в избранном'
         verbose_name_plural = 'Рецепты в избранном'
-        unique_together = (('user', 'recipe'),)
-
-    def __str__(self):
-        return f'{self.recipe.name}'
+        default_related_name = 'favourites'
 
 
+class ShoppingCart(FavoriteShoppingCartBaseModel):
 
-class ShoppingCart(models.Model):
-    user = models.ForeignKey(User,
-                             on_delete=models.CASCADE,
-                             related_name='shopping_cart',
-                             verbose_name='Пользователь')
-    recipe = models.ForeignKey(Recipe,
-                               on_delete=models.CASCADE,
-                               related_name='shopping_cart',
-                               verbose_name='Рецепт в корзине')
-
-    class Meta:
-        verbose_name = 'Рецепты в корзине'
-        unique_together = (('user', 'recipe'),)
-
-    def __str__(self):
-        return f'{self.recipe.name}'
+    class Meta(FavoriteShoppingCartBaseModel.Meta):
+        verbose_name = 'Рецепт в корзине'
+        verbose_name_plural = 'Рецепты в корзине'
+        default_related_name = 'shopping_cart'
