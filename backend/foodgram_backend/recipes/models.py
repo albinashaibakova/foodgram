@@ -112,13 +112,11 @@ class Favourite(models.Model):
     class Meta:
         verbose_name = 'Рецепт в избранном'
         verbose_name_plural = 'Рецепты в избранном'
+        unique_together = (('user', 'recipe'),)
 
     def __str__(self):
         return f'{self.recipe.name}'
 
-    class Meta:
-        verbose_name = 'Рецепты в корзине'
-        unique_together = (('user', 'recipe'),)
 
 
 class ShoppingCart(models.Model):

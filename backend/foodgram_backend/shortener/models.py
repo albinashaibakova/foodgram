@@ -5,13 +5,10 @@ from django.db import models
 
 class LinkShortener(models.Model):
 
-    long_url = models.CharField(max_length=200)
-    short_url = models.CharField(max_length=15)
+    long_url = models.CharField(max_length=200, unique=True)
+    slug = models.CharField(max_length=15)
 
     class Meta:
-        abstract = True
-        verbose_name = 'Ссылка'
-        verbose_name_plural = 'Ссылки'
-        unique_together = (('long_url', 'short_url'),)
-
-
+        verbose_name = 'Короткая ссылка на рецепт'
+        verbose_name_plural = 'Короткие ссылки на рецепт'
+        unique_together = (('long_url', 'slug'),)

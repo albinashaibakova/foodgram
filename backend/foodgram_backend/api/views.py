@@ -1,3 +1,5 @@
+import random
+import string
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect
 from rest_framework.decorators import action
@@ -8,15 +10,17 @@ from rest_framework.response import Response
 import aspose.pdf as ap
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from django.urls import reverse
 
 from recipes.models import (Ingredient, IngredientRecipe,
                             Recipe, ShoppingCart, Tag, Favourite)
 
+from shortener.serializers import ShortenerSerializer
 from .serializers import (IngredientSerializer, FavouriteSerializer,
                           RecipeAddUpdateSerializer,
                           RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
 from .permissions import IsOwnerOrReadOnly
-
+from shortener.models import LinkShortener
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -35,8 +39,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=('get', ),
             permission_classes=(permissions.AllowAny, ),
             url_path='get-link')
-    def get_short_link(self, request, pk=None):
-        pass
+    def get_short_link(self, request, pk=None, **kwargs):
+        long_url = self.request.build_absolute_uri()
+        if LinkShortener.objects.filter(long_url=long_url).exists():
+            slug = LinkShortener.objects.get(long_url=long_url).slug
+            return redirect(reverse('shortener:short_link', kwargs={'slug':slug}))
+        slug = ''.join(random.choice(string.ascii_letters)
+                       for x in range(10))
+        serializer = ShortenerSerializer(data={
+                                                  'long_url': long_url,
+                                                  'slug': slug,
+                                              }
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return redirect(reverse('shortener:short_link', kwargs={'slug':slug}))
 
 
     @action(methods=('post', 'delete'),
