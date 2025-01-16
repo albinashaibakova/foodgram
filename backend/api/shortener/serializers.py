@@ -1,9 +1,10 @@
 import string
-from random import random, choice
+from random import choice
 
-from rest_framework.reverse import reverse
-from shortener.models import LinkShortener
 from rest_framework import serializers
+
+from backend.shortener import LinkShortener
+
 
 class ShortenerSerializer(serializers.ModelSerializer):
     slug = serializers.SerializerMethodField()

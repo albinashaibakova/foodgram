@@ -6,12 +6,11 @@ from rest_framework import (permissions, pagination,
                             status)
 from rest_framework.response import Response
 
-from api.serializers import FollowSerializer
+from backend.api.recipes.serializers import FollowSerializer
 from backend.api.users.serializers import UserListSerializer, UserAvatarSerializer
-from backend.core.users.models import Follow
+from backend.users import Follow
 
 User = get_user_model()
-
 
 
 class FoodgramPaginator(pagination.PageNumberPagination):

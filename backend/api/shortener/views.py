@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from shortener.serializers import ShortenerSerializer
+from backend.api.shortener.serializers import ShortenerSerializer
 
 
 class ShortLinkView(APIView):

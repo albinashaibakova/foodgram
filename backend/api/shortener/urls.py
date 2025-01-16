@@ -1,5 +1,6 @@
 from django.urls import path
-from shortener.views import ShortLinkView
+
+from backend.api.shortener.views import ShortLinkView
 
 
 app_name = 'shortener'
