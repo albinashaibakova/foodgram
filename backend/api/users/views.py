@@ -3,12 +3,12 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework import (permissions, pagination,
-                            status, viewsets)
+                            status)
 from rest_framework.response import Response
 
 from api.serializers import FollowSerializer
-from .serializers import UserListSerializer, UserAvatarSerializer
-from .models import Follow
+from backend.api.users.serializers import UserListSerializer, UserAvatarSerializer
+from backend.core.users.models import Follow
 
 User = get_user_model()
 

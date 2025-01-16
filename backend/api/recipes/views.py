@@ -1,9 +1,7 @@
-import random
-import string
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework import (filters, permissions,
                             status, viewsets)
 from rest_framework.response import Response
@@ -16,10 +14,10 @@ from recipes.models import (Ingredient, IngredientRecipe,
                             Recipe, ShoppingCart, Tag, Favourite)
 
 from shortener.serializers import ShortenerSerializer
-from .serializers import (IngredientSerializer, FavouriteSerializer,
-                          RecipeAddUpdateSerializer,
-                          RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
-from .permissions import IsOwnerOrReadOnly
+from backend.api.recipes.serializers import (IngredientSerializer, FavouriteSerializer,
+                                             RecipeAddUpdateSerializer,
+                                             RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
+from backend.api.permissions import IsOwnerOrReadOnly
 from shortener.models import LinkShortener
 
 

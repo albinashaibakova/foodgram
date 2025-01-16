@@ -13,6 +13,8 @@ PASSWORD_MAX_LENGTH = 60
 
 
 class FoodgramUser(AbstractUser):
+    """Модель пользователя сервиса FOODGRAM"""
+
     USER = 'user'
     ADMIN = 'admin'
 
@@ -68,6 +70,8 @@ class FoodgramUser(AbstractUser):
 
 
 class Follow(models.Model):
+    """Модель для описания подписки на пользователя"""
+
     user = models.ForeignKey(FoodgramUser,
                              on_delete=models.CASCADE,
                              related_name='follower',
@@ -80,7 +84,6 @@ class Follow(models.Model):
     class Meta:
         verbose_name = 'Подписки пользователя'
         unique_together = ('user', 'following')
-
 
     def __str__(self):
         return f'{self.user} подписан на автора {self.following}'

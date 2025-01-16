@@ -2,10 +2,12 @@ from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from recipes.models import Ingredient, Favourite, Recipe, Tag, ShoppingCart, IngredientRecipe, TagRecipe
 from rest_framework.exceptions import ValidationError
 
-from users.serializers import UserListSerializer
+from api.users.serializers import UserListSerializer
+
+from recipes.models import (Ingredient, Favourite, Recipe,
+                            Tag, ShoppingCart, IngredientRecipe, TagRecipe)
 from users.models import Follow
 
 

@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -17,6 +17,8 @@ TEXT_MAX_LENGTH = 10000
 
 
 class Tag(models.Model):
+    """Модель для описания тэгов"""
+
     name = models.CharField(max_length=TAG_MAX_LENGTH,
                             unique=True,
                             verbose_name='Название')
@@ -33,6 +35,8 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """ Модель для описания ингредиентов"""
+
     name = models.CharField(max_length=INGREDIENT_MAX_LENGTH,
                             verbose_name='Название')
     measurement_unit = models.CharField(max_length=MEASURE_MAX_LENGTH,
@@ -47,6 +51,8 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    """Модель для описания рецепта"""
+
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name='recipes')
     name = models.CharField(max_length=NAME_MAX_LENGTH,
@@ -100,6 +106,7 @@ class IngredientRecipe(models.Model):
 
 
 class FavoriteShoppingCartBaseModel(models.Model):
+    """Общая модель рецепта в избранном и рецепта в корзине"""
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE)
     user = models.ForeignKey(User,
@@ -115,6 +122,7 @@ class FavoriteShoppingCartBaseModel(models.Model):
 
 
 class Favourite(FavoriteShoppingCartBaseModel):
+    """Модель для описания добавления рецепта в избранное"""
 
     class Meta(FavoriteShoppingCartBaseModel.Meta):
         verbose_name = 'Рецепт в избранном'
@@ -123,6 +131,7 @@ class Favourite(FavoriteShoppingCartBaseModel):
 
 
 class ShoppingCart(FavoriteShoppingCartBaseModel):
+    """Модель для описания добавления рецепта в корзину"""
 
     class Meta(FavoriteShoppingCartBaseModel.Meta):
         verbose_name = 'Рецепт в корзине'
