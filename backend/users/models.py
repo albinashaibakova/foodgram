@@ -47,7 +47,7 @@ class FoodgramUser(AbstractUser):
         default=False,
         verbose_name='Подписан ли текущий пользователь на этого'
     )
-    avatar = models.BinaryField(
+    avatar = models.ImageField(
         blank=True,
         null=True,
         upload_to='users/avatars/',
