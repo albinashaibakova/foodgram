@@ -15,10 +15,12 @@ from recipes.models import (Ingredient, IngredientRecipe,
 from shortener.models import LinkShortener
 from api.shortener.serializers import ShortenerSerializer
 from api.recipes.serializers import (IngredientSerializer, FavouriteSerializer,
-                                             RecipeAddUpdateSerializer,
-                                             RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
+                                     RecipeAddUpdateSerializer,
+                                     RecipeGetSerializer, TagSerializer,
+                                     ShoppingCartSerializer)
 from api.permissions import IsOwnerOrReadOnly
 
+from api.utils import add_favorite_shopping_cart, delete_favorite_shopping_cart
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -33,7 +35,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeAddUpdateSerializer
         return RecipeGetSerializer
 
-
     @action(detail=True, methods=('get', ),
             permission_classes=(permissions.AllowAny, ),
             url_path='get-link')
@@ -42,67 +43,45 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if not LinkShortener.objects.filter(long_url=long_url).exists():
             serializer = ShortenerSerializer(data={'long_url': long_url})
             serializer.is_valid(raise_exception=True)
-            print(serializer.validated_data)
             serializer.save()
         slug = LinkShortener.objects.get(long_url=long_url).slug
         return redirect(reverse('shortener:short_link', kwargs={'slug':slug}))
-
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
             permission_classes=(permissions.IsAuthenticated, ),
             detail=True)
     def favorite(self, request, *args, **kwargs):
+        kwargs['recipe_id'] = kwargs['pk']
+        serializer = FavouriteSerializer
+
         if request.method == 'POST':
-            serializer = FavouriteSerializer(
-                data={
-                    'user': request.user.id,
-                    'recipe': get_object_or_404(Recipe, id=kwargs['pk']).id
-                },
-                context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data,
+            return Response(add_favorite_shopping_cart(request, serializer, **kwargs),
                             status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
-            if not Favourite.objects.filter(
-                    user=request.user,
-                    recipe=get_object_or_404(Recipe, id=kwargs['pk'])).exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            favourite = get_object_or_404(Favourite,
-                                          recipe=get_object_or_404(Recipe, id=kwargs['pk']),
-                                          user=request.user)
-            favourite.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            model_instance = Favourite
+            if delete_favorite_shopping_cart(request, model_instance, **kwargs):
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=('post', 'delete'),
             url_path='shopping_cart',
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
     def shopping_cart(self, request, *args, **kwargs):
+        kwargs['recipe_id'] = kwargs['pk']
+        serializer = ShoppingCartSerializer
+
         if request.method == 'POST':
-            serializer = ShoppingCartSerializer(
-                data={
-                    'user': request.user.id,
-                    'recipe': get_object_or_404(Recipe, id=kwargs['pk']).id
-                },
-                context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data,
+            return Response(add_favorite_shopping_cart(request, serializer, **kwargs),
                             status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
-            if not ShoppingCart.objects.filter(
-                    user=request.user,
-                    recipe=get_object_or_404(Recipe, id=kwargs['pk'])).exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            shopping_cart = ShoppingCart.objects.filter(
-                    user=request.user,
-                    recipe=get_object_or_404(Recipe, id=kwargs['pk']))
-            shopping_cart.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            model_instance = ShoppingCart
+            if delete_favorite_shopping_cart(request, model_instance, **kwargs):
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=('get',),
             url_path='download_shopping_cart',
