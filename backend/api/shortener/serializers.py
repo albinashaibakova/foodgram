@@ -3,7 +3,7 @@ from random import choice
 
 from rest_framework import serializers
 
-from backend.shortener import LinkShortener
+from shortener.models import LinkShortener
 
 
 class ShortenerSerializer(serializers.ModelSerializer):

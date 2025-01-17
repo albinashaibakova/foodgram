@@ -6,9 +6,9 @@ from rest_framework import (permissions, pagination,
                             status)
 from rest_framework.response import Response
 
-from backend.api.recipes.serializers import FollowSerializer
-from backend.api.users.serializers import UserListSerializer, UserAvatarSerializer
-from backend.users import Follow
+from api.recipes.serializers import FollowSerializer
+from api.users.serializers import UserListSerializer, UserAvatarSerializer
+from users.models import Follow
 
 User = get_user_model()
 
@@ -20,7 +20,6 @@ class FoodgramPaginator(pagination.PageNumberPagination):
 
 
 class UsersViewSet(UserViewSet):
-
 
     @action(methods=('get', 'patch'),
             url_path='me',

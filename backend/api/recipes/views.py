@@ -10,14 +10,14 @@ from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from django.urls import reverse
 
-from backend.recipes.models import (Ingredient, IngredientRecipe,
+from recipes.models import (Ingredient, IngredientRecipe,
                                     Recipe, ShoppingCart, Tag, Favourite)
-from backend.shortener import LinkShortener
-from backend.api.shortener.serializers import ShortenerSerializer
-from backend.api.recipes.serializers import (IngredientSerializer, FavouriteSerializer,
+from shortener.models import LinkShortener
+from api.shortener.serializers import ShortenerSerializer
+from api.recipes.serializers import (IngredientSerializer, FavouriteSerializer,
                                              RecipeAddUpdateSerializer,
                                              RecipeGetSerializer, TagSerializer, ShoppingCartSerializer)
-from backend.api.permissions import IsOwnerOrReadOnly
+from api.permissions import IsOwnerOrReadOnly
 
 
 

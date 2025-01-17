@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from backend.recipes.models import (Ingredient, IngredientRecipe, Tag, TagRecipe, Recipe)
+from recipes.models import (Ingredient, IngredientRecipe, Tag, TagRecipe, Recipe)
 
 
 User = get_user_model()

@@ -1,8 +1,8 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from backend.api.users.views import UsersViewSet
-from backend.api.recipes.views import IngredientViewSet, RecipeViewSet, TagViewSet
+from api.users.views import UsersViewSet
+from api.recipes.views import IngredientViewSet, RecipeViewSet, TagViewSet
 
 router = routers.DefaultRouter()
 
@@ -15,6 +15,6 @@ router.register('users', UsersViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('', include('djoser.urls')),
-    path('', include('shortener.urls', namespace='shortener')),
+    path('', include('api.shortener.urls', namespace='shortener')),
     path('auth/', include('djoser.urls.authtoken'))
 ]
