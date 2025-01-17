@@ -122,13 +122,13 @@ class FavoriteShoppingCartBaseModel(models.Model):
         return f'{self.recipe.name}'
 
 
-class Favourite(FavoriteShoppingCartBaseModel):
+class Favorite(FavoriteShoppingCartBaseModel):
     """Модель для описания добавления рецепта в избранное"""
 
     class Meta(FavoriteShoppingCartBaseModel.Meta):
         verbose_name = 'Рецепт в избранном'
         verbose_name_plural = 'Рецепты в избранном'
-        default_related_name = 'favourites'
+        default_related_name = 'favorites'
 
 
 class ShoppingCart(FavoriteShoppingCartBaseModel):

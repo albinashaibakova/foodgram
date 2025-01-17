@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework import (filters, permissions,
@@ -11,10 +11,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.urls import reverse
 
 from recipes.models import (Ingredient, IngredientRecipe,
-                                    Recipe, ShoppingCart, Tag, Favourite)
+                                    Recipe, ShoppingCart, Tag, Favorite)
 from shortener.models import LinkShortener
 from api.shortener.serializers import ShortenerSerializer
-from api.recipes.serializers import (IngredientSerializer, FavouriteSerializer,
+from api.recipes.serializers import (IngredientSerializer, FavoriteSerializer,
                                      RecipeAddUpdateSerializer,
                                      RecipeGetSerializer, TagSerializer,
                                      ShoppingCartSerializer)
@@ -25,7 +25,7 @@ from api.utils import add_favorite_shopping_cart, delete_favorite_shopping_cart
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    search_fields = ('author.id', 'tags', 'user.favourites')
+    search_fields = ('author.id', 'tags', 'user.favorites')
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = [filters.SearchFilter]
     filterset_fields = ('author',)
@@ -53,14 +53,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     def favorite(self, request, *args, **kwargs):
         kwargs['recipe_id'] = kwargs['pk']
-        serializer = FavouriteSerializer
+        serializer = FavoriteSerializer
 
         if request.method == 'POST':
             return Response(add_favorite_shopping_cart(request, serializer, **kwargs),
                             status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            model_instance = Favourite
+            model_instance = Favorite
             if delete_favorite_shopping_cart(request, model_instance, **kwargs):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(status=status.HTTP_400_BAD_REQUEST)

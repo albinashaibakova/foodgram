@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from api.users.serializers import UserListSerializer
-from recipes.models import (Ingredient, Favourite, Recipe,
+from recipes.models import (Ingredient, Favorite, Recipe,
                             Tag, ShoppingCart, IngredientRecipe, TagRecipe)
 from users.models import Follow
 
@@ -14,6 +14,7 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'slug')
+
 
 class IngredientSerializer(serializers.ModelSerializer):
 
@@ -57,7 +58,6 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     tags = TagSerializer(many=True, read_only=True)
 
-
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
@@ -80,7 +80,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
-
 
     def validate_ingredients(self, ingredients):
         if not ingredients:
@@ -139,7 +138,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         ).data
 
 
-class FavouriteShoppingCartSerializer(serializers.ModelSerializer):
+class FavoriteShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('user', 'recipe',)
 
@@ -149,16 +148,16 @@ class FavouriteShoppingCartSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-class ShoppingCartSerializer(FavouriteShoppingCartSerializer):
+class ShoppingCartSerializer(FavoriteShoppingCartSerializer):
 
-    class Meta(FavouriteShoppingCartSerializer.Meta):
+    class Meta(FavoriteShoppingCartSerializer.Meta):
         model = ShoppingCart
 
 
-class FavouriteSerializer(FavouriteShoppingCartSerializer):
+class FavoriteSerializer(FavoriteShoppingCartSerializer):
 
-    class Meta(FavouriteShoppingCartSerializer.Meta):
-        model = Favourite
+    class Meta(FavoriteShoppingCartSerializer.Meta):
+        model = Favorite
 
 
 class FollowSerializer(serializers.ModelSerializer):
