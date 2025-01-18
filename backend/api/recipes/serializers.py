@@ -86,6 +86,11 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Отсутствуют ингредиенты!')
         ingredient_list = []
         for recipe_ingredient in ingredients:
+            if not Ingredient.objects.filter(
+                    id=recipe_ingredient['id']).exists():
+                raise serializers.ValidationError('Ингредиент не присутствует в списке')
+            if recipe_ingredient['amount'] < 1:
+                raise serializers.ValidationError('Количество не может быть равно нулю')
             recipe_ingredient = get_object_or_404(Ingredient, id=recipe_ingredient['id'])
             if recipe_ingredient in ingredient_list:
                 raise serializers.ValidationError('Ингредиенты повторяются')
@@ -129,6 +134,19 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         self.add_ingredients_tags(instance, ingredients, tags)
         instance.save()
         return instance
+
+    def validate(self, attrs):
+        if not attrs.get('image'):
+            raise serializers.ValidationError(
+                'Рецепт должен содержать изображение')
+        if not attrs.get('recipe_ingredients'):
+            raise serializers.ValidationError(
+                'Рецепт должен содержать ингредиенты')
+        if not attrs.get('tags'):
+            raise serializers.ValidationError(
+                'Рецепт должен содержать тэги'
+            )
+        return attrs
 
     def to_representation(self, instance):
         request = self.context.get('request')
@@ -189,7 +207,7 @@ class FollowGetSerializer(serializers.ModelSerializer):
     last_name = serializers.ReadOnlyField(source='user.last_name')
     email = serializers.ReadOnlyField(source='user.email')
     is_subscribed = serializers.ReadOnlyField(source='user.is_subscribed')
-    avatar = serializers.ReadOnlyField(source='user.avatar')
+    avatar = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -201,6 +219,14 @@ class FollowGetSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         self.recipes_limit = kwargs.pop('recipes_limit', None)
         super(FollowGetSerializer, self).__init__(*args, **kwargs)
+
+
+    def get_avatar(self, obj):
+        if obj.user.avatar:
+            return obj.user.avatar
+        else:
+            return None
+
 
     def get_recipes(self, obj):
         if self.recipes_limit:

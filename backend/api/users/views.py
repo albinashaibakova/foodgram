@@ -50,12 +50,15 @@ class UsersViewSet(UserViewSet):
                 serializer = UserAvatarSerializer(request.user,
                                                   data=request.data)
                 serializer.is_valid(raise_exception=True)
-                serializer.save(avatar=serializer.validate_avatar(request.data['avatar']))
+                serializer.save()
                 return Response(serializer.data,
                                 status=status.HTTP_200_OK)
         if request.method == 'DELETE':
+            data = request.data
+            if 'avatar' not in data:
+                data = {'avatar': None}
             serializer = UserAvatarSerializer(request.user,
-                                              data=request.data)
+                                              data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save(avatar=None)
             return Response(status=status.HTTP_204_NO_CONTENT)

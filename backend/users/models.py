@@ -47,6 +47,7 @@ class FoodgramUser(AbstractUser):
         default=False,
         verbose_name='Подписан ли текущий пользователь на этого'
     )
+
     avatar = models.ImageField(
         blank=True,
         null=True,
@@ -68,6 +69,13 @@ class FoodgramUser(AbstractUser):
     def is_admin(self):
         return (self.role == self.ADMIN
                 or self.is_superuser)
+
+    @property
+    def get_default_avatar(self):
+        if self.avatar:
+            return self.avatar
+        else:
+            return '/users/avatars/default_user.jpg'
 
 
 class Follow(models.Model):
