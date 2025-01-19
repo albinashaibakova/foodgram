@@ -11,10 +11,12 @@ User = get_user_model()
 
 
 class UserSignUpSerializer(UserCreateSerializer):
+    avatar = Base64ImageField(default='media/users/default-avatar.jpg', read_only=True)
+
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'password')
+                  'last_name', 'password', 'avatar')
 
 
 class UserListSerializer(UserSerializer):

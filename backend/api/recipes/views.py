@@ -22,13 +22,16 @@ from api.permissions import IsOwnerOrReadOnly
 
 from api.utils import add_favorite_shopping_cart, delete_favorite_shopping_cart
 
+from api.filtersets import RecipeFilterSet
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     search_fields = ('author.id', 'tags', 'user.favorites')
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = [filters.SearchFilter]
-    filterset_fields = ('author',)
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = RecipeFilterSet
+
 
     def get_serializer_class(self):
         if self.request.method not in SAFE_METHODS:

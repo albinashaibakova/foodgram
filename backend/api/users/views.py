@@ -90,9 +90,15 @@ class UsersViewSet(UserViewSet):
         kwargs['recipes_limit'] = recipes_limit
 
         if request.method == 'POST':
+            if Follow.objects.filter(user=user,
+                                     following=following).exists():
+                return Response(
+                    data={'Error': f'Вы уже подписаны на {user.username}!'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
             serializer = FollowSerializer(
-            data={'user': user.id, 'following': following.id},
-            context={'request': request}, **kwargs
+                data={'user': user.id, 'following': following.id},
+                context={'request': request}, **kwargs
             )
             serializer.is_valid(raise_exception=True)
             serializer.save(user=user, following=following)
@@ -102,7 +108,7 @@ class UsersViewSet(UserViewSet):
             if not Follow.objects.filter(user=user,
                                          following=following).exists():
                 return Response(
-                    {'Error': 'You are not following this user'},
+                    {'Error': f'Вы не подписаны на {user.username}!'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             Follow.objects.get(user=user,
