@@ -1,6 +1,8 @@
 import string
 from random import choice
+
 from rest_framework import serializers
+
 from shortener.models import LinkShortener
 
 

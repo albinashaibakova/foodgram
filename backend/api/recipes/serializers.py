@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from api.custom_serializer_field import Base64ImageField
+
+from api.serializer_fields import Base64ImageField
 from api.users.serializers import UserListSerializer
 from recipes.models import (Ingredient, IngredientRecipe,
                             Favorite, Recipe,

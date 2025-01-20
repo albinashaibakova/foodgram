@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
+AVATAR_MAX_LENGTH = 200
 USERNAME_MAX_LENGTH = 150
 FIST_NAME_MAX_LENGTH = 150
 LAST_NAME_MAX_LENGTH = 150
@@ -48,7 +49,7 @@ class FoodgramUser(AbstractUser):
     )
 
     avatar = models.ImageField(
-        max_length=200,
+        max_length=AVATAR_MAX_LENGTH,
         blank=True,
         null=True,
         upload_to='users/avatars/',
