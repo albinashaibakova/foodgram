@@ -1,12 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-
-from api.users.serializers import UserListSerializer
 from api.custom_serializer_field import Base64ImageField
-from recipes.models import (Ingredient, Favorite, Recipe,
-                            Tag, ShoppingCart, IngredientRecipe,
-                            TagRecipe)
+from api.users.serializers import UserListSerializer
+from recipes.models import (Ingredient, IngredientRecipe,
+                            Favorite, Recipe,
+                            ShoppingCart, Tag)
 from users.models import Follow
 
 
@@ -222,6 +221,7 @@ class FollowSerializer(serializers.ModelSerializer):
             raise ValidationError('Вы не можете подписаться на себя!')
         return data
 
+
 class FollowGetSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')
     first_name = serializers.ReadOnlyField(source='user.first_name')
@@ -235,7 +235,7 @@ class FollowGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ('id', 'username', 'first_name', 'last_name', 'email',
-        'is_subscribed', 'recipes', 'recipes_count', 'avatar')
+                  'is_subscribed', 'recipes', 'recipes_count', 'avatar')
 
     def __init__(self, *args, **kwargs):
         self.recipes_limit = kwargs.pop('recipes_limit', None)

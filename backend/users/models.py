@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
-
 USERNAME_MAX_LENGTH = 150
 FIST_NAME_MAX_LENGTH = 150
 LAST_NAME_MAX_LENGTH = 150
