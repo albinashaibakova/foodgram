@@ -76,8 +76,9 @@ class Recipe(models.Model):
                               null=False)
     is_favorited = models.BooleanField(verbose_name='Находится ли в избранном',
                                        default=False)
-    is_in_shopping_cart = models.BooleanField(verbose_name='Находится ли в корзине',
-                                              default=False)
+    is_in_shopping_cart = models.BooleanField(
+        verbose_name='Находится ли в корзине',
+        default=False)
 
     class Meta:
         default_related_name = 'recipe'
@@ -99,9 +100,12 @@ class TagRecipe(models.Model):
 class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                related_name='recipe_ingredients',)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.PositiveIntegerField(validators=[MinValueValidator(1)],
-                                         verbose_name='Количество')
+    ingredient = models.ForeignKey(Ingredient,
+                                   on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name='Количество'
+    )
 
     def __str__(self):
         return f'{self.recipe.name} содержит {self.ingredient}'

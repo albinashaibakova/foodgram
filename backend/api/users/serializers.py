@@ -1,7 +1,5 @@
 from django.contrib.auth import get_user_model
-
 from djoser.serializers import UserCreateSerializer, UserSerializer
-
 from rest_framework import serializers
 
 from api.custom_serializer_field import Base64ImageField
@@ -11,7 +9,8 @@ User = get_user_model()
 
 
 class UserSignUpSerializer(UserCreateSerializer):
-    avatar = Base64ImageField(default='media/users/default-avatar.jpg', read_only=True)
+    avatar = Base64ImageField(default='media/users/default-avatar.jpg',
+                              read_only=True)
 
     class Meta:
         model = User

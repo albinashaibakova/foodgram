@@ -7,7 +7,8 @@ from rest_framework import (permissions, pagination,
 from rest_framework.response import Response
 
 from api.recipes.serializers import FollowSerializer
-from api.users.serializers import UserListSerializer, UserAvatarSerializer
+from api.users.serializers import (UserListSerializer,
+                                   UserAvatarSerializer)
 from users.models import Follow
 
 User = get_user_model()
@@ -20,11 +21,13 @@ class FoodgramPaginator(pagination.PageNumberPagination):
 
 
 class UsersViewSet(UserViewSet):
+    """Вьюсет для работы с пользователями"""
 
     @action(methods=('get', 'patch'),
             url_path='me',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
+    # Профиль пользователя
     def get_user_profile(self, request):
         if request.method == 'GET':
             user = get_object_or_404(User,
@@ -44,11 +47,13 @@ class UsersViewSet(UserViewSet):
             url_path='me/avatar',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
+    # Смена аватарки
     def set_avatar(self, request):
         if request.method == 'PUT':
             if 'avatar' in request.data:
-                serializer = UserAvatarSerializer(request.user,
-                                                  data=request.data)
+                serializer = UserAvatarSerializer(
+                    request.user,
+                    data=request.data)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
                 return Response(serializer.data,
@@ -64,11 +69,11 @@ class UsersViewSet(UserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(methods=('get',),
             url_path='subscriptions',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
+    # Подписки пользователя
     def get_subscriptions(self, request, **kwargs):
         recipes_limit = request.query_params.get('recipes_limit')
         kwargs['recipes_limit'] = recipes_limit
@@ -78,11 +83,11 @@ class UsersViewSet(UserViewSet):
         serializer = FollowSerializer(paginated_subscriptions, many=True, **kwargs)
         return paginator.get_paginated_response(serializer.data)
 
-
     @action(methods=('post', 'delete',),
             url_path='subscribe',
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
+    # Подписка на пользователя
     def subscribe(self, request, *args, **kwargs):
         user = request.user
         following = get_object_or_404(User, id=kwargs.pop('id'))

@@ -9,7 +9,7 @@ LAST_NAME_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 256
 MAX_STR_VALUE_LENGTH = 10
 ROLE_MAX_LENGTH = 15
-PASSWORD_MAX_LENGTH = 60
+PASSWORD_MAX_LENGTH = 200
 
 
 class FoodgramUser(AbstractUser):
@@ -49,6 +49,7 @@ class FoodgramUser(AbstractUser):
     )
 
     avatar = models.ImageField(
+        max_length=200,
         blank=True,
         null=True,
         upload_to='users/avatars/',
@@ -60,7 +61,8 @@ class FoodgramUser(AbstractUser):
         verbose_name='Роль пользователя')
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'password', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['username', 'password',
+                       'first_name', 'last_name']
 
     def __str__(self):
         return self.username[:MAX_STR_VALUE_LENGTH]

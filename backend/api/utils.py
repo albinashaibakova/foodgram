@@ -13,6 +13,7 @@ def add_favorite_shopping_cart(request, serializer, *args, **kwargs):
     serializer.save()
     return serializer.data
 
+
 def delete_favorite_shopping_cart(request, model, *args, **kwargs):
     user = request.user
     recipe = get_object_or_404(Recipe, id=kwargs['recipe_id'])

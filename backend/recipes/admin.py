@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from recipes.models import (Ingredient, IngredientRecipe, Tag, TagRecipe, Recipe)
+from recipes.models import (Ingredient, IngredientRecipe,
+                            Tag, TagRecipe, Recipe)
 
 
 User = get_user_model()
@@ -35,7 +36,8 @@ class RecipeAdmin(admin.ModelAdmin):
         description='Список ингредиентов',
     )
     def display_ingredients(self, recipe):
-        return ', '.join([ingredient.name for ingredient in recipe.ingredients.all()])
+        return ', '.join([ingredient.name
+                          for ingredient in recipe.ingredients.all()])
 
     @admin.display(
         description='Список тэгов'
