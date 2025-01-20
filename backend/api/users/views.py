@@ -79,8 +79,12 @@ class UsersViewSet(UserViewSet):
         kwargs['recipes_limit'] = recipes_limit
         subscriptions = Follow.objects.filter(user=request.user)
         paginator = FoodgramPaginator()
-        paginated_subscriptions = paginator.paginate_queryset(subscriptions, request)
-        serializer = FollowSerializer(paginated_subscriptions, many=True, **kwargs)
+        paginated_subscriptions = paginator.paginate_queryset(
+            subscriptions, request
+        )
+        serializer = FollowSerializer(paginated_subscriptions,
+                                      many=True,
+                                      **kwargs)
         return paginator.get_paginated_response(serializer.data)
 
     @action(methods=('post', 'delete',),

@@ -1,6 +1,4 @@
 import os
-from datetime import timedelta
-
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -102,12 +100,12 @@ AUTH_USER_MODEL = 'users.FoodgramUser'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-#DATABASES = {
+# DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.sqlite3',
 #        'NAME': BASE_DIR / 'db.sqlite3',
 #    }
-#}
+# }
 
 DATABASES = {
     'default': {

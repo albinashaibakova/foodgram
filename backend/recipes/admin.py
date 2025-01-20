@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 
 from recipes.models import (Ingredient, IngredientRecipe,
-                            Tag, TagRecipe, Recipe)
+                            Recipe, Tag, TagRecipe, )
 
 
 User = get_user_model()

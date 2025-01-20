@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
-from api.custom_serializer_field import Base64ImageField
+from api.serializer_fields import Base64ImageField
 
 
 User = get_user_model()

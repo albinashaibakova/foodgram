@@ -1,10 +1,9 @@
 import aspose.pdf as ap
 from django.db.models import Sum
-from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
-
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (permissions,
                             status, viewsets)
 from rest_framework.decorators import action
@@ -18,8 +17,8 @@ from api.recipes.serializers import (IngredientSerializer, FavoriteSerializer,
                                      ShoppingCartSerializer)
 from api.shortener.serializers import ShortenerSerializer
 from api.utils import add_favorite_shopping_cart, delete_favorite_shopping_cart
-from recipes.models import (Ingredient, IngredientRecipe,
-                                    Recipe, ShoppingCart, Tag, Favorite)
+from recipes.models import (Ingredient, IngredientRecipe, Favorite,
+                            Recipe, ShoppingCart, Tag)
 from shortener.models import LinkShortener
 
 
@@ -54,7 +53,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         slug = LinkShortener.objects.get(long_url=long_url).slug
         return redirect(reverse(
             'shortener:short_link',
-            kwargs={'slug':slug}))
+            kwargs={'slug': slug}))
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
@@ -89,12 +88,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer = ShoppingCartSerializer
 
         if request.method == 'POST':
-            return Response(add_favorite_shopping_cart(request, serializer, **kwargs),
-                            status=status.HTTP_201_CREATED)
+            return Response(add_favorite_shopping_cart(
+                request, serializer, **kwargs
+            ),
+                status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
             model_instance = ShoppingCart
-            if delete_favorite_shopping_cart(request, model_instance, **kwargs):
+            if delete_favorite_shopping_cart(
+                    request, model_instance, **kwargs
+            ):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -106,8 +109,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request, *args, **kwargs):
         ingredients = IngredientRecipe.objects.filter(
             recipe__shopping_cart__user=request.user
-        ).values('ingredient__name',
-                 'ingredient__measurement_unit').annotate(quantity=Sum('amount'))
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(quantity=Sum('amount'))
 
         document = ap.Document()
 
@@ -115,7 +120,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         for ingredient in ingredients:
             text_fragment = ap.text.TextFragment(
-                f'{ingredient["ingredient__name"]} - {ingredient["quantity"]}, '
+                f'{ingredient["ingredient__name"]} - '
+                f'{ingredient["quantity"]}, '
                 f'{ingredient["ingredient__measurement_unit"]}')
             page.paragraphs.add(text_fragment)
             document.save('output.pdf')

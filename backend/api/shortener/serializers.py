@@ -16,11 +16,13 @@ class ShortenerSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         print(validated_data)
         slug = self.get_slug()
-        shortener = LinkShortener(long_url=validated_data['long_url'], slug=slug)
+        shortener = LinkShortener(
+            long_url=validated_data['long_url'], slug=slug
+        )
         shortener.save()
         return shortener
 
     def get_slug(self):
         slug = ''.join(choice(string.ascii_letters)
-                           for x in range(10))
+                       for x in range(10))
         return slug
