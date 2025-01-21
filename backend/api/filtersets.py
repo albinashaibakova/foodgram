@@ -1,11 +1,13 @@
 import django_filters
 
-from recipes.models import Recipe
+from recipes.models import Recipe, Tag
 
 
 class RecipeFilterSet(django_filters.FilterSet):
     username = django_filters.CharFilter(method='filter_author')
-    tags = django_filters.CharFilter(method='filter_tags')
+    tags = django_filters.MultipleChoiceFilter(field_name='tags__slug',
+                                               lookup_expr='slug',
+                                               queryset=Tag.objects.all())
     is_favorited = django_filters.CharFilter(
         method='filter_is_favorited'
     )
@@ -20,16 +22,13 @@ class RecipeFilterSet(django_filters.FilterSet):
                   'is_favorited',
                   'is_in_shopping_cart')
 
-    def filter_author(self, queryset, name, value):
-        return Recipe.objects.filter(author__id=value)
+    def filter(self, queryset, name, value):
+        if value and self.request.user.id:
+            return queryset.filter(**{name: self.request.user})
+        return queryset
 
-    def filter_tags(self, queryset, name, value):
-        lookup = '__'.join([name, 'slug'])
-        return queryset.filter(**{lookup: value})
-
-    def filter_is_favorited(self, queryset, name, value):
-        return Recipe.objects.filter(is_favorited=bool(int(value)))
+     def filter_is_favorited(self, queryset, name, value):
+        return self.filter(queryset, name, value)
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        return Recipe.objects.filter(
-            is_in_shopping_cart=bool(int(value)))
+        return self.filter(queryset, name, value)
