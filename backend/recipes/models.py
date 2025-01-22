@@ -4,6 +4,7 @@ from django.db import models
 
 User = get_user_model()
 
+
 NAME_MAX_LENGTH = 256
 SLUG_MAX_LENGTH = 32
 TAG_MAX_LENGTH = 32
