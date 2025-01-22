@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -78,6 +79,9 @@ class Recipe(models.Model):
     is_in_shopping_cart = models.BooleanField(
         verbose_name='Находится ли в корзине',
         default=False)
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      default=timezone.now,
+                                      verbose_name='Дата и время добавления рецепта')
 
     class Meta:
         ordering = ('-created_at',)
