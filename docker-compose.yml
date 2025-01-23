@@ -3,6 +3,7 @@ version: '3'
 volumes:
   foodgram_data:
   static:
+  media:
 
 services:
   foodgram_db:
@@ -18,6 +19,7 @@ services:
       - foodgram_db
     volumes:
       - static:/backend_static
+      - media:/media
 
   frontend:
     env_file: .env
@@ -34,4 +36,5 @@ services:
       - backend
     volumes:
       - static:/staticfiles/
+      - media:/media/
 
