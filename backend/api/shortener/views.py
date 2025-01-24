@@ -11,7 +11,7 @@ class ShortLinkView(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, **kwargs):
-        print(request.query_params)
+        url = self.request.build_absolute_uri().split('api/')[0]
         slug = kwargs['slug']
-        return Response({'short-link': slug},
+        return Response({'short-link': f'{url}{slug}'},
                         status=status.HTTP_200_OK)

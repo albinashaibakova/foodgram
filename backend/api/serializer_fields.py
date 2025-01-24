@@ -13,7 +13,9 @@ class Base64ImageField(serializers.ImageField):
             try:
                 decoded_file = base64.b64decode(data)
             except TypeError:
-                raise serializers.ValidationError('Invalid image')
+                raise serializers.ValidationError(
+                    'Картинка не валидна'
+                )
             data = ContentFile(decoded_file, name=f'image.{ext}')
 
         return super().to_internal_value(data)

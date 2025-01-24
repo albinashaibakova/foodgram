@@ -4,6 +4,7 @@ from django.db import models
 
 User = get_user_model()
 
+
 NAME_MAX_LENGTH = 256
 SLUG_MAX_LENGTH = 32
 TAG_MAX_LENGTH = 32
@@ -80,6 +81,7 @@ class Recipe(models.Model):
         default=False)
 
     class Meta:
+        ordering = ('-id',)
         default_related_name = 'recipe'
         verbose_name = 'рецепт'
         verbose_name_plural = 'Рецепты'

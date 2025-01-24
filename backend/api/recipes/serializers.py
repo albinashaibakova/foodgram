@@ -61,12 +61,30 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
     image = Base64ImageField()
     tags = TagSerializer(many=True, read_only=True)
+    is_favorited = serializers.SerializerMethodField
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
                   'is_favorited', 'is_in_shopping_cart', 'name',
                   'image', 'text', 'cooking_time')
+
+    def get_is_favorited(self, obj):
+        request = self.context.get('request')
+        if (request.user.is_authenticated
+                and Favorite.objects.filter(user=request.user,
+                                            recipe=obj.id).exists()):
+            return True
+        return False
+
+    def get_is_in_shopping_cart(self, obj):
+        request = self.context.get('request')
+        if (request.user.is_authenticated
+                and ShoppingCart.objects.filter(user=request.user,
+                                                recipe=obj.id).exists()):
+            return True
+        return False
 
 
 class RecipeAddUpdateSerializer(serializers.ModelSerializer):
@@ -224,11 +242,11 @@ class FollowSerializer(serializers.ModelSerializer):
 
 
 class FollowGetSerializer(serializers.ModelSerializer):
-    username = serializers.ReadOnlyField(source='user.username')
-    first_name = serializers.ReadOnlyField(source='user.first_name')
-    last_name = serializers.ReadOnlyField(source='user.last_name')
-    email = serializers.ReadOnlyField(source='user.email')
-    is_subscribed = serializers.ReadOnlyField(source='user.is_subscribed')
+    username = serializers.ReadOnlyField(source='following.username')
+    first_name = serializers.ReadOnlyField(source='following.first_name')
+    last_name = serializers.ReadOnlyField(source='following.last_name')
+    email = serializers.ReadOnlyField(source='following.email')
+    is_subscribed = serializers.ReadOnlyField(source='following.is_subscribed')
     avatar = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -243,18 +261,18 @@ class FollowGetSerializer(serializers.ModelSerializer):
         super(FollowGetSerializer, self).__init__(*args, **kwargs)
 
     def get_avatar(self, obj):
-        if obj.user.avatar:
-            return obj.user.avatar
+        if obj.following.avatar:
+            return obj.following.avatar
         else:
             return None
 
     def get_recipes(self, obj):
         if self.recipes_limit:
             recipes_limit = int(self.recipes_limit)
-            recipes = Recipe.objects.filter(author=obj.user)[:recipes_limit]
+            recipes = Recipe.objects.filter(author=obj.following)[:recipes_limit]
         else:
-            recipes = Recipe.objects.filter(author=obj.user)
+            recipes = Recipe.objects.filter(author=obj.following)
         return RecipeShortSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj.user).count()
+        return Recipe.objects.filter(author=obj.following).count()
