@@ -6,14 +6,14 @@ from recipes.models import Ingredient, Tag
 
 
 class Command(BaseCommand):
-    """Command for migrating from json to db for Ingredient model"""
+    """Команда для заполнения БД из файла формата JSON"""
 
     def add_arguments(self, parser):
         parser.add_argument('json_file', type=str,
                             help='The JSON file to import data from')
 
     def handle(self, *args, **kwargs):
-
+        model = None
         json_file = kwargs['json_file']
         if 'ingredients' in json_file:
             model = Ingredient
@@ -21,11 +21,11 @@ class Command(BaseCommand):
             model = Tag
 
         with open(json_file) as file:
-            try:
+            if model:
                 items = json.load(file)
 
                 for item in items:
                     model.objects.create(**item)
 
-            except:
+            else:
                 print("Не получилось загрузить элементы из файла JSON")

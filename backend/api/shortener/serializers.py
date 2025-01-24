@@ -7,6 +7,8 @@ from shortener.models import LinkShortener
 
 
 class ShortenerSerializer(serializers.ModelSerializer):
+    """Сериализатор для получения короткой ссылки на рецепт"""
+
     slug = serializers.SerializerMethodField()
 
     class Meta:

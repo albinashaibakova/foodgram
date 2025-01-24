@@ -7,6 +7,8 @@ from api.shortener.serializers import ShortenerSerializer
 
 
 class ShortLinkView(APIView):
+    """Получение короткой ссылки на рецепт"""
+
     serializer_class = ShortenerSerializer
     permission_classes = (AllowAny,)
 

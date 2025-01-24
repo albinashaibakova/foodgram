@@ -9,7 +9,7 @@ from rest_framework import (permissions,
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.filtersets import RecipeFilterSet
+from api.filtersets import IngredientFilter, RecipeFilterSet
 from api.permissions import IsOwnerOrReadOnly
 from api.recipes.serializers import (IngredientSerializer, FavoriteSerializer,
                                      RecipeAddUpdateSerializer,
@@ -147,5 +147,5 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name',)
+    filterset_class = IngredientFilter
     pagination_class = None

@@ -1,12 +1,22 @@
 from django_filters.rest_framework import filters, FilterSet
 
-from recipes.models import Recipe, Tag
+from recipes.models import Ingredient, Recipe, Tag
+
+
+class IngredientFilter(FilterSet):
+    name = filters.CharFilter(field_name='name', lookup_expr='icontains')
+
+    class Meta:
+        model = Ingredient
+        fields = ('name', )
 
 
 class RecipeFilterSet(FilterSet):
+    """Фильтр для рецептов"""
+
     tags = filters.ModelMultipleChoiceFilter(field_name='tags__slug',
-                                        to_field_name='slug',
-                                        queryset=Tag.objects.all())
+                                             to_field_name='slug',
+                                             queryset=Tag.objects.all())
     is_favorited = filters.BooleanFilter(
         method='filter_is_favorited'
     )

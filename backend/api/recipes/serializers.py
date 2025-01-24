@@ -11,6 +11,7 @@ from users.models import Follow
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с тэгами"""
 
     class Meta:
         model = Tag
@@ -18,6 +19,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с ингредиентами"""
 
     class Meta:
         model = Ingredient
@@ -25,6 +27,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с ингредиентами в рецепте"""
+
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
@@ -34,6 +38,9 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
 
 
 class IngredientGetSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения ингредиентов,
+     входящих в состав рецепта"""
+
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
     measurement_unit = serializers.CharField(
@@ -47,6 +54,7 @@ class IngredientGetSerializer(serializers.ModelSerializer):
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения краткой информации о рецепте"""
 
     class Meta:
         model = Recipe
@@ -54,11 +62,12 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения полной информации о рецепте"""
+
     ingredients = IngredientGetSerializer(many=True,
                                           read_only=True,
                                           source='recipe_ingredients')
     author = UserListSerializer()
-
     image = Base64ImageField()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField
@@ -88,6 +97,8 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
 
 class RecipeAddUpdateSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления и изменения рецепта"""
+
     ingredients = IngredientRecipeSerializer(
         many=True, source='recipe_ingredients'
     )
@@ -197,6 +208,8 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
 
 
 class FavoriteShoppingCartSerializer(serializers.ModelSerializer):
+    """Общий сериализатор для работы с моделями Favorite и Shopping Cart"""
+
     class Meta:
         fields = ('user', 'recipe',)
 
@@ -219,6 +232,8 @@ class FavoriteSerializer(FavoriteShoppingCartSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    """Сериализатор подписок"""
+
     user = UserListSerializer(read_only=True)
 
     def __init__(self, *args, **kwargs):
@@ -242,6 +257,8 @@ class FollowSerializer(serializers.ModelSerializer):
 
 
 class FollowGetSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения информации о подписках"""
+
     username = serializers.ReadOnlyField(source='following.username')
     first_name = serializers.ReadOnlyField(source='following.first_name')
     last_name = serializers.ReadOnlyField(source='following.last_name')
@@ -260,16 +277,12 @@ class FollowGetSerializer(serializers.ModelSerializer):
         self.recipes_limit = kwargs.pop('recipes_limit', None)
         super(FollowGetSerializer, self).__init__(*args, **kwargs)
 
-    def get_avatar(self, obj):
-        if obj.following.avatar:
-            return obj.following.avatar
-        else:
-            return None
-
     def get_recipes(self, obj):
         if self.recipes_limit:
             recipes_limit = int(self.recipes_limit)
-            recipes = Recipe.objects.filter(author=obj.following)[:recipes_limit]
+            recipes = Recipe.objects.filter(
+                author=obj.following
+            )[:recipes_limit]
         else:
             recipes = Recipe.objects.filter(author=obj.following)
         return RecipeShortSerializer(recipes, many=True).data
