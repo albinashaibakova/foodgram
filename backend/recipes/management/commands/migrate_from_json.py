@@ -2,7 +2,7 @@ import json
 
 from django.core.management.base import BaseCommand
 
-from recipes.models import Ingredient
+from recipes.models import Ingredient, Tag
 
 
 class Command(BaseCommand):
@@ -13,11 +13,19 @@ class Command(BaseCommand):
                             help='The JSON file to import data from')
 
     def handle(self, *args, **kwargs):
+
         json_file = kwargs['json_file']
+        if 'ingredients' in json_file:
+            model = Ingredient
+        if 'tags' in json_file:
+            model = Tag
 
         with open(json_file) as file:
+            try:
+                items = json.load(file)
 
-            ingredients = json.load(file)
+                for item in items:
+                    model.objects.create(**item)
 
-            for ingredient in ingredients:
-                Ingredient.objects.create(**ingredient)
+            except:
+                print("Не получилось загрузить элементы из файла JSON")
