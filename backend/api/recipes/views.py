@@ -17,7 +17,7 @@ from api.recipes.serializers import (IngredientSerializer, FavoriteSerializer,
                                      ShoppingCartSerializer)
 from api.shortener.serializers import ShortenerSerializer
 from api.utils import add_favorite_shopping_cart, delete_favorite_shopping_cart
-from recipes.models import (Ingredient, IngredientRecipe, Favorite,
+from recipes.models import (Ingredient, RecipeIngredient, Favorite,
                             Recipe, ShoppingCart, Tag)
 from shortener.models import LinkShortener
 
@@ -107,7 +107,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=False)
     # Скачивание ингредиентов для рецептов, добавленных в корзину
     def download_shopping_cart(self, request, *args, **kwargs):
-        ingredients = IngredientRecipe.objects.filter(
+        ingredients = RecipeIngredient.objects.filter(
             recipe__shopping_cart__user=request.user
         ).values(
             'ingredient__name',

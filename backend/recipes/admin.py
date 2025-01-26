@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from recipes.models import (Ingredient, IngredientRecipe,
-                            Recipe, Tag, TagRecipe, )
+from recipes.models import (Ingredient, RecipeIngredient,
+                            Recipe, Tag,)
 
 
 User = get_user_model()
@@ -46,8 +46,8 @@ class RecipeAdmin(admin.ModelAdmin):
         return ', '.join([tag.name for tag in recipe.tags.all()])
 
 
-@admin.register(IngredientRecipe)
-class IngredientRecipeAdmin(admin.ModelAdmin):
+@admin.register(RecipeIngredient)
+class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = (
         'ingredient_id',
         'recipe_id'
@@ -55,12 +55,3 @@ class IngredientRecipeAdmin(admin.ModelAdmin):
     list_filter = ('ingredient_id',)
     search_fields = ('recipe_id',)
 
-
-@admin.register(TagRecipe)
-class TagRecipeAdmin(admin.ModelAdmin):
-    list_display = (
-        'tag_id',
-        'recipe_id'
-    )
-    list_filter = ('tag_id',)
-    search_fields = ('recipe_id',)

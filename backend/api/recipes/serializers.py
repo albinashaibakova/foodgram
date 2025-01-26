@@ -4,9 +4,10 @@ from rest_framework.exceptions import ValidationError
 
 from api.serializer_fields import Base64ImageField
 from api.users.serializers import UserListSerializer
-from recipes.models import (Ingredient, IngredientRecipe,
+from recipes.models import (Ingredient, RecipeIngredient,
                             Favorite, Follow, Recipe,
                             ShoppingCart, Tag)
+
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с тэгами"""
@@ -24,14 +25,14 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class IngredientRecipeSerializer(serializers.ModelSerializer):
+class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами в рецепте"""
 
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
     class Meta:
-        model = IngredientRecipe
+        model = RecipeIngredient
         fields = ('id', 'amount')
 
 
@@ -47,7 +48,7 @@ class IngredientGetSerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField()
 
     class Meta:
-        model = IngredientRecipe
+        model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
@@ -97,7 +98,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления и изменения рецепта"""
 
-    ingredients = IngredientRecipeSerializer(
+    ingredients = RecipeIngredientSerializer(
         many=True, source='recipe_ingredients'
     )
     author = serializers.HiddenField(
@@ -160,7 +161,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             ingredient = Ingredient.objects.get(
                 id=recipe_ingredient['id']
             )
-            IngredientRecipe.objects.create(
+            RecipeIngredient.objects.create(
                 ingredient=ingredient,
                 recipe=recipe,
                 amount=recipe_ingredient['amount'])
@@ -178,7 +179,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         instance.tags.clear()
         instance.tags.set(tags)
-        IngredientRecipe.objects.filter(recipe=instance).delete()
+        RecipeIngredient.objects.filter(recipe=instance).delete()
         super().update(instance, validated_data)
         self.add_ingredients_tags(instance, ingredients, tags)
         instance.save()
