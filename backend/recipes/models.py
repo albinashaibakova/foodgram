@@ -1,9 +1,15 @@
-from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 
-User = get_user_model()
 
+USERNAME_MAX_LENGTH = 150
+FIST_NAME_MAX_LENGTH = 150
+LAST_NAME_MAX_LENGTH = 150
+EMAIL_MAX_LENGTH = 256
+MAX_STR_VALUE_LENGTH = 10
+ROLE_MAX_LENGTH = 15
+PASSWORD_MAX_LENGTH = 200
 
 NAME_MAX_LENGTH = 256
 SLUG_MAX_LENGTH = 32
@@ -13,7 +19,67 @@ MEASURE_MAX_LENGTH = 20
 COOKING_TIME_MIN = 1
 MAX_REPR_LENGTH_TAG_INGREDIENT = 10
 MAX_REPR_LENGTH_RECIPE = 20
-TEXT_MAX_LENGTH = 10000
+
+
+class FoodgramUser(AbstractUser):
+    """Модель пользователя сервиса FOODGRAM"""
+
+    username = models.CharField(
+        max_length=USERNAME_MAX_LENGTH,
+        unique=True,
+        verbose_name='Юзернейм',
+        validators=[RegexValidator(regex=r'^[\w.@+-]+$')]
+    )
+    email = models.EmailField(
+        max_length=EMAIL_MAX_LENGTH,
+        unique=True,
+        verbose_name='Адрес электронной почты')
+    first_name = models.CharField(
+        max_length=FIST_NAME_MAX_LENGTH,
+        verbose_name='Имя')
+    last_name = models.CharField(
+        max_length=LAST_NAME_MAX_LENGTH,
+        verbose_name='Фамилия')
+    avatar = models.ImageField(
+        blank=True,
+        null=True,
+        upload_to='users/avatars/',
+        verbose_name='Ссылка на аватар')
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'password',
+                       'first_name', 'last_name']
+
+    class Meta:
+        ordering = ('-id', )
+        verbose_name = 'Пользователь Foodgram'
+        verbose_name_plural = 'Пользователи Foodgram'
+
+    def __str__(self):
+        return self.username[:MAX_STR_VALUE_LENGTH]
+
+
+class Follow(models.Model):
+    """Модель для описания подписки на пользователя"""
+
+    user = models.ForeignKey(FoodgramUser,
+                             on_delete=models.CASCADE,
+                             related_name='followers',
+                             verbose_name='Пользователь')
+    author = models.ForeignKey(FoodgramUser,
+                               on_delete=models.CASCADE,
+                               related_name='authors',
+                               verbose_name='Автор рецепта')
+
+    class Meta:
+        verbose_name = 'Подписчик автора рецепта'
+        verbose_name_plural = 'Подписчики автора рецепта'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'author'])
+        ]
+
+    def __str__(self):
+        return f'{self.user} подписан на автора {self.author}'
 
 
 class Tag(models.Model):

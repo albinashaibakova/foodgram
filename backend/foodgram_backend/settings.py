@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
-    'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'shortener.apps.ShortenerConfig'
 ]
@@ -96,7 +95,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
-AUTH_USER_MODEL = 'users.FoodgramUser'
+AUTH_USER_MODEL = 'recipes.FoodgramUser'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -124,7 +123,6 @@ if DEBUG:
 else:
     DATABASES = PROD_DATABASE
 
-print(DATABASES)
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
