@@ -75,7 +75,8 @@ class Follow(models.Model):
         verbose_name = 'Подписчик автора рецепта'
         verbose_name_plural = 'Подписчики автора рецепта'
         constraints = [
-            models.UniqueConstraint(fields=['user', 'author'])
+            models.UniqueConstraint(fields=['user', 'author'],
+                                    name='unique_follow')
         ]
 
     def __str__(self):
@@ -119,7 +120,7 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     """Модель для описания рецепта"""
 
-    author = models.ForeignKey(User, on_delete=models.CASCADE,
+    author = models.ForeignKey(FoodgramUser, on_delete=models.CASCADE,
                                related_name='recipes')
     name = models.CharField(max_length=NAME_MAX_LENGTH,
                             verbose_name='Название')
@@ -131,8 +132,7 @@ class Recipe(models.Model):
                                   related_name='recipes',
                                   through='TagRecipe',
                                   verbose_name='Список тегов')
-    text = models.TextField(max_length=TEXT_MAX_LENGTH,
-                            verbose_name='Описание')
+    text = models.TextField(verbose_name='Описание')
     cooking_time = models.SmallIntegerField(
         validators=[MinValueValidator(COOKING_TIME_MIN)],
         verbose_name='Время приготовления (в минутах)'
@@ -182,7 +182,7 @@ class FavoriteShoppingCartBaseModel(models.Model):
     """Общая модель рецепта в избранном и рецепта в корзине"""
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE)
-    user = models.ForeignKey(User,
+    user = models.ForeignKey(FoodgramUser,
                              on_delete=models.CASCADE,
                              verbose_name='Автор рецепта')
 

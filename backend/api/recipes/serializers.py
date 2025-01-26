@@ -5,10 +5,8 @@ from rest_framework.exceptions import ValidationError
 from api.serializer_fields import Base64ImageField
 from api.users.serializers import UserListSerializer
 from recipes.models import (Ingredient, IngredientRecipe,
-                            Favorite, Recipe,
+                            Favorite, Follow, Recipe,
                             ShoppingCart, Tag)
-from users.models import Follow
-
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с тэгами"""
