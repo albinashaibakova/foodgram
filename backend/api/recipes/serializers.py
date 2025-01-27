@@ -2,6 +2,7 @@ import string
 from random import choice
 
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
@@ -11,6 +12,7 @@ from api.serializer_fields import Base64ImageField
 from recipes.models import (Ingredient, RecipeIngredient,
                             Favorite, Follow, Recipe,
                             ShoppingCart, Tag)
+from rest_framework.validators import UniqueValidator
 
 User = get_user_model()
 
@@ -41,9 +43,6 @@ class UserAvatarSerializer(serializers.ModelSerializer):
         fields = ('avatar', )
 
 
-
-
-
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с тэгами"""
 
@@ -63,8 +62,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами в рецепте"""
 
-    id = serializers.IntegerField()
-    amount = serializers.IntegerField()
+    id = serializers.IntegerField(validators=UniqueValidator(queryset=RecipeIngredient.objects.all()))
+    amount = serializers.IntegerField(validators=MinValueValidator(1))
 
     class Meta:
         model = RecipeIngredient
@@ -85,14 +84,16 @@ class IngredientGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
+        read_only_fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-class RecipeShortSerializer(serializers.ModelSerializer):
+class RecipeGetShortSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения краткой информации о рецепте"""
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+        read_only_fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
