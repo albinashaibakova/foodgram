@@ -12,14 +12,12 @@ class Command(BaseCommand):
         parser.add_argument('json_file', type=str,
                             help='The JSON file to import data from')
 
-    def handle(self, *args, **kwargs):
-        model = None
+    def handle(self, model=None, **kwargs):
         json_file = kwargs['json_file']
         if 'ingredients' in json_file:
             model = Ingredient
         if 'tags' in json_file:
             model = Tag
-
         with open(json_file) as file:
             if model:
                 items = json.load(file)
