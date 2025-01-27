@@ -181,7 +181,7 @@ class RecipeIngredient(models.Model):
         default_related_name = '%(app_label)s_%(class)s_related'
 
 
-class FavoriteShoppingCartBaseModel(models.Model):
+class BaseModel(models.Model):
     """Общая модель рецепта в избранном и рецепта в корзине"""
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
@@ -202,20 +202,20 @@ class FavoriteShoppingCartBaseModel(models.Model):
         return self.recipe.name
 
 
-class Favorite(FavoriteShoppingCartBaseModel):
+class Favorite(BaseModel):
     """Модель для описания добавления рецепта в избранное"""
 
-    class Meta(FavoriteShoppingCartBaseModel.Meta):
+    class Meta(BaseModel.Meta):
         verbose_name = 'Рецепт в избранном'
         verbose_name_plural = 'Рецепты в избранном'
         constraints = [UniqueConstraint(fields=['recipe', 'user'],
                                         name='unique_favorite')]
 
 
-class ShoppingCart(FavoriteShoppingCartBaseModel):
+class ShoppingCart(BaseModel):
     """Модель для описания добавления рецепта в корзину"""
 
-    class Meta(FavoriteShoppingCartBaseModel.Meta):
+    class Meta(BaseModel.Meta):
         verbose_name = 'Рецепт в корзине'
         verbose_name_plural = 'Рецепты в корзине'
         constraints = [UniqueConstraint(fields=['recipe', 'user'],
