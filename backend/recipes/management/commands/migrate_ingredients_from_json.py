@@ -6,4 +6,8 @@ from recipes.models import Ingredient
 class CommandIngredients(Command):
     """Команда для заполнения БД ингредиентами из файла формата JSON"""
 
-    pass
+    def __init__(self):
+        super().__init__()
+
+    json_file = self.from_json
+    print(self.from_json)
