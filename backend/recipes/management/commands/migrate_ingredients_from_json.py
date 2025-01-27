@@ -1,13 +1,13 @@
-from recipes.management.commands.base_migrate_from_json import Command
+from recipes.management.commands.base_migrate_from_json import BaseImportCommand
 
 from recipes.models import Ingredient
 
 
-class CommandIngredients(Command):
+class Command(BaseImportCommand):
     """Команда для заполнения БД ингредиентами из файла формата JSON"""
 
-    def __init__(self):
-        super().__init__()
+    def import_data(self, data):
+        for ingredient in data:
+            Ingredient.objects.create(**ingredient)
 
-    json_file = self.from_json
-    print(self.from_json)
+        print('Ингредиенты успешно загружены')
