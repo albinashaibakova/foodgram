@@ -1,12 +1,47 @@
+import string
+from random import choice
+
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from api.serializer_fields import Base64ImageField
-from api.users.serializers import UserListSerializer
 from recipes.models import (Ingredient, RecipeIngredient,
                             Favorite, Follow, Recipe,
                             ShoppingCart, Tag)
+
+User = get_user_model()
+
+
+class UserSignUpSerializer(UserCreateSerializer):
+    avatar = Base64ImageField(default='media/users/default-avatar.jpg',
+                              read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'password', 'avatar')
+
+
+class UserListSerializer(UserSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name',
+                  'last_name', 'email', 'is_subscribed', 'avatar')
+
+
+class UserAvatarSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField(allow_null=True)
+
+    class Meta:
+        model = User
+        fields = ('avatar', )
+
+
+
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -14,7 +49,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'slug')
+        fields = '__all__'
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -69,7 +104,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     author = UserListSerializer()
     image = Base64ImageField()
     tags = TagSerializer(many=True, read_only=True)
-    is_favorited = serializers.SerializerMethodField
+    is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
@@ -108,10 +143,18 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         many=True
     )
+    slug = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = '__all__'
+
+    def get_slug_for_recipe(self, instance):
+        if self.context['request'].method == 'POST':
+            slug = ''.join(choice(string.ascii_letters)
+                           for x in range(10))
+            return slug
+        return instance.slug
 
     def validate_ingredients(self, ingredients):
         if not ingredients:

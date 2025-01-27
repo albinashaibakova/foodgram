@@ -7,7 +7,10 @@ class Command(BaseImportCommand):
     """Команда для заполнения БД ингредиентами из файла формата JSON"""
 
     def import_data(self, data):
-        for ingredient in data:
-            Ingredient.objects.create(**ingredient)
 
-        print('Ингредиенты успешно загружены')
+        try:
+            Ingredient.objects.bulk_create(Ingredient(**ingredient) for ingredient in data)
+            print('Ингредиенты успешно загружены')
+
+        except Exception as e:
+            print(f'Error: {e}')

@@ -145,6 +145,10 @@ class Recipe(models.Model):
     image = models.ImageField(verbose_name='Url картинки',
                               upload_to='recipes/images',
                               null=False)
+    slug = models.SlugField(unique=True,
+                            blank=True,
+                            null=True,
+                            verbose_name='Короткая ссылка на рецепт')
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата и время создания рецепта'

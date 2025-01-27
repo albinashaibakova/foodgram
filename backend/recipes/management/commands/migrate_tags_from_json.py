@@ -7,7 +7,10 @@ class Command(BaseImportCommand):
     """Команда для заполнения БД тэгами из файла формата JSON"""
 
     def import_data(self, data):
-        for tag in data:
-            Tag.objects.create(**tag)
 
-        print('Тэги успешно загружены')
+        try:
+            Tag.objects.bulk_create(Tag(**tag) for tag in data)
+            print('Тэги успешно загружены')
+
+        except Exception as e:
+            print(f'Error: {e}')
