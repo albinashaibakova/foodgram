@@ -166,6 +166,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             'image',
             'text',
             'cooking_time',
+            'slug'
         )
 
 
