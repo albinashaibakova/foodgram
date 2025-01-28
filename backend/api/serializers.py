@@ -62,8 +62,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами в рецепте"""
 
-    id = serializers.IntegerField(validators=UniqueValidator(queryset=RecipeIngredient.objects.all()))
-    amount = serializers.IntegerField(validators=MinValueValidator(1))
+    id = serializers.IntegerField(validators=[UniqueValidator(queryset=RecipeIngredient.objects.all())])
+    amount = serializers.IntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
         model = RecipeIngredient

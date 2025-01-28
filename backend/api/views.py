@@ -14,18 +14,16 @@ from rest_framework.exceptions import ValidationError
 
 from api.filtersets import IngredientFilter, RecipeFilterSet
 from api.permissions import IsOwnerOrReadOnly
-from api.recipes.serializers import (IngredientSerializer, FavoriteSerializer,
+from api.serializers import (IngredientSerializer, FavoriteSerializer,
                                      FollowSerializer,
                                      RecipeAddUpdateSerializer,
                                      RecipeGetSerializer, TagSerializer,
                                      ShoppingCartSerializer,
                                      UserListSerializer,
                                      UserAvatarSerializer)
-from api.shortener.serializers import ShortenerSerializer
 from api.utils import add_favorite_shopping_cart, delete_favorite_shopping_cart
 from recipes.models import (Ingredient, RecipeIngredient, Favorite,
                             Follow, Recipe, ShoppingCart, Tag)
-from shortener.models import LinkShortener
 
 
 User = get_user_model()
