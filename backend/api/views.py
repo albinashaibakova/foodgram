@@ -47,7 +47,8 @@ class UsersViewSet(UserViewSet):
         if request.method == 'GET':
             user = get_object_or_404(User,
                                      username=request.user.username)
-            serializer = UserListSerializer(user)
+            serializer = UserListSerializer(user,
+                                            context={'request': request})
             return Response(serializer.data,
                             status=status.HTTP_200_OK)
         serializer = UserListSerializer(request.user,
