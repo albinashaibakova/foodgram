@@ -72,7 +72,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 class AddIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами в рецепте"""
 
-    id = serializers.IntegerField()
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(), source='ingredient'
+    )
     amount = serializers.IntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
@@ -109,8 +111,8 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения полной информации о рецепте"""
 
     ingredients = IngredientGetSerializer(many=True,
-                                             source='recipe_ingredients',
-                                             read_only=True)
+                                          read_only=True,
+                                          source='recipe_ingredients')
     author = UserListSerializer()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()

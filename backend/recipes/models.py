@@ -181,7 +181,7 @@ class RecipeIngredient(models.Model):
         ordering = ('recipe__name', 'ingredient__name')
         verbose_name = 'Продукт для рецепта'
         verbose_name_plural = 'Продукты для рецептов'
-        default_related_name = '%(app_label)s_%(class)s_related'
+        default_related_name = 'recipe_ingredients'
 
 
 class BaseModel(models.Model):
