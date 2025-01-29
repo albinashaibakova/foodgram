@@ -32,8 +32,8 @@
 - Примените миграции
     `python manage.py migrate`
 - Наполните базу данных необходимыми данными (ингрeдиенты и тэги) с помощью команд
-    `python -Xutf8 manage.py migrate_from_json_ingredients ../data/ingredients.json`
-    `python -Xutf8 manage.py migrate_from_json_tags ../data/tags.json`
+    `python -Xutf8 manage.py migrate_ingredients_from_json ../data/ingredients.json`
+    `python -Xutf8 manage.py migrate_tags_from_json ../data/tags.json`
 В режиме отладки в файле settings.py требуется раскоментировать строки 103-108, 
 отвечающие за подключение к базе данных Sqlite и закоментировать строки, связанные с плдключением к БД Postgres
 Также указать значение флага DEBUG = True

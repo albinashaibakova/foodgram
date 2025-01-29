@@ -69,10 +69,10 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RecipeIngredientSerializer(serializers.ModelSerializer):
+class AddIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами в рецепте"""
 
-    id = serializers.IntegerField(validators=[UniqueValidator(queryset=RecipeIngredient.objects.all())])
+    id = serializers.IntegerField()
     amount = serializers.IntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
@@ -109,8 +109,8 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения полной информации о рецепте"""
 
     ingredients = IngredientGetSerializer(many=True,
-                                          read_only=True,
-                                          source='recipe_ingredients')
+                                             source='recipe_ingredients',
+                                             read_only=True)
     author = UserListSerializer()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -140,8 +140,9 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления и изменения рецепта"""
 
-    ingredients = RecipeIngredientSerializer(
-        many=True, source='recipe_ingredients'
+    ingredients = AddIngredientSerializer(
+        many=True, write_only=True,
+        source='recipe_ingredients'
     )
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
@@ -174,10 +175,11 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         return ShoppingCart.objects.filter(user=user,
                                        recipe=recipe.id).exists()
 
-    def get_slug_for_recipe(self, instance):
+    def get_slug(self, instance):
         if self.context['request'].method == 'POST':
             slug = ''.join(choice(string.ascii_letters)
                            for x in range(10))
+
             return slug
         return instance.slug
 
