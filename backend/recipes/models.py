@@ -134,8 +134,7 @@ class Recipe(models.Model):
                             verbose_name='Название рецепта')
     ingredients = models.ManyToManyField(Ingredient,
                                          verbose_name='Список ингредиентов')
-    tags = models.ForeignKey(Tag,
-                             on_delete=models.CASCADE,
+    tags = models.ManyToManyField(Tag,
                              verbose_name='Список тегов')
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.SmallIntegerField(

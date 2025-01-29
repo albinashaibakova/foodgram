@@ -12,6 +12,7 @@ from api.serializer_fields import Base64ImageField
 from recipes.models import (Ingredient, RecipeIngredient,
                             Favorite, Follow, Recipe,
                             ShoppingCart, Tag)
+from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.validators import UniqueValidator
 
 User = get_user_model()
@@ -145,7 +146,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
     image = Base64ImageField()
-    tags = TagSerializer(many=True)
+    tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     slug = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
