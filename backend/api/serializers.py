@@ -192,10 +192,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             )
         ingredient_list = []
         for recipe_ingredient in ingredients:
-            if recipe_ingredient['amount'] < 1:
-                raise serializers.ValidationError(
-                    'Количество не может быть равно нулю'
-                )
+
             if recipe_ingredient in ingredient_list:
                 raise serializers.ValidationError(
                     'Ингредиенты повторяются'
@@ -220,11 +217,14 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     @staticmethod
     def add_ingredients_tags(recipe, ingredients, tags):
         recipe.tags.set(tags)
-        for recipe_ingredient in ingredients:
-            RecipeIngredient.objects.create(
-                ingredient=recipe_ingredient['ingredient'],
-                recipe=recipe,
-                amount=recipe_ingredient['amount'])
+
+        RecipeIngredient.objects.bulk_create(RecipeIngredient(
+            ingredient=recipe_ingredient['ingredient'],
+            recipe=recipe,
+            amount=recipe_ingredient['amount']
+        )
+        for recipe_ingredient in ingredients)
+
         return recipe
 
     def create(self, validated_data):
