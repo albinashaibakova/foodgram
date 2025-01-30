@@ -94,8 +94,8 @@ class IngredientGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'name', 'measurement_unit')
-        read_only_fields = ('id', 'name', 'measurement_unit')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+        read_only_fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class RecipeGetShortSerializer(serializers.ModelSerializer):
@@ -192,19 +192,10 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             )
         ingredient_list = []
         for recipe_ingredient in ingredients:
-            if not Ingredient.objects.filter(
-                    id=recipe_ingredient['id']).exists():
-                raise serializers.ValidationError(
-                    'Ингредиент не присутствует в списке'
-                )
             if recipe_ingredient['amount'] < 1:
                 raise serializers.ValidationError(
                     'Количество не может быть равно нулю'
                 )
-            recipe_ingredient = get_object_or_404(
-                Ingredient,
-                id=recipe_ingredient['id']
-            )
             if recipe_ingredient in ingredient_list:
                 raise serializers.ValidationError(
                     'Ингредиенты повторяются'
@@ -230,11 +221,8 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def add_ingredients_tags(recipe, ingredients, tags):
         recipe.tags.set(tags)
         for recipe_ingredient in ingredients:
-            ingredient = Ingredient.objects.get(
-                id=recipe_ingredient['id']
-            )
             RecipeIngredient.objects.create(
-                ingredient=ingredient,
+                ingredient=recipe_ingredient['ingredient'],
                 recipe=recipe,
                 amount=recipe_ingredient['amount'])
         return recipe
