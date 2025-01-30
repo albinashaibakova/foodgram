@@ -230,7 +230,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('recipe_ingredients')
         tags = validated_data.pop('tags')
-        recipe = super().create(validated_data)
+        recipe = Recipe.create(**validated_data)
         self.add_ingredients_tags(recipe, ingredients, tags)
         return recipe
 
@@ -240,10 +240,9 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         instance.tags.clear()
         instance.tags.set(tags)
         RecipeIngredient.objects.filter(recipe=instance).delete()
-        super().update(instance, validated_data)
         self.add_ingredients_tags(instance, ingredients, tags)
         instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
     def validate(self, attrs):
         if not attrs.get('image'):
@@ -259,35 +258,10 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         return attrs
 
     def to_representation(self, instance):
-        request = self.context.get('request')
         return RecipeGetSerializer(
             instance,
-            context={'request': request}
+            context={'request': self.context.get('request')}
         ).data
-
-
-class FavoriteShoppingCartSerializer(serializers.ModelSerializer):
-    """Общий сериализатор для работы с моделями Favorite и Shopping Cart"""
-
-    class Meta:
-        fields = ('user', 'recipe',)
-
-    def to_representation(self, instance):
-        recipe = instance.recipe
-        serializer = RecipeGetShortSerializer(recipe)
-        return serializer.data
-
-
-class ShoppingCartSerializer(FavoriteShoppingCartSerializer):
-
-    class Meta(FavoriteShoppingCartSerializer.Meta):
-        model = ShoppingCart
-
-
-class FavoriteSerializer(FavoriteShoppingCartSerializer):
-
-    class Meta(FavoriteShoppingCartSerializer.Meta):
-        model = Favorite
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -344,7 +318,7 @@ class FollowGetSerializer(serializers.ModelSerializer):
             )[:recipes_limit]
         else:
             recipes = Recipe.objects.filter(author=obj.following)
-        return RecipeShortSerializer(recipes, many=True).data
+        return RecipeGetShortSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj.following).count()

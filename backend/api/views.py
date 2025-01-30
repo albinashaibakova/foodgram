@@ -14,13 +14,12 @@ from rest_framework.exceptions import ValidationError
 
 from api.filtersets import IngredientFilter, RecipeFilterSet
 from api.permissions import IsOwnerOrReadOnly
-from api.serializers import (IngredientSerializer, FavoriteSerializer,
-                                     FollowSerializer,
-                                     RecipeAddUpdateSerializer,
-                                     RecipeGetSerializer, TagSerializer,
-                                     ShoppingCartSerializer,
-                                     UserListSerializer,
-                                     UserAvatarSerializer)
+from api.serializers import (IngredientSerializer,
+                             FollowSerializer,
+                             RecipeAddUpdateSerializer,
+                             RecipeGetSerializer, TagSerializer,
+                             UserListSerializer,
+                             UserAvatarSerializer)
 from api.utils import add_favorite_shopping_cart, delete_favorite_shopping_cart
 from recipes.models import (Ingredient, RecipeIngredient, Favorite,
                             Follow, Recipe, ShoppingCart, Tag)
@@ -138,9 +137,6 @@ class UsersViewSet(UserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
-
-
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с рецептами"""
 
@@ -159,20 +155,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.AllowAny, ),
             url_path='get-link')
     # Получение короткой ссылки на рецепт
-    def get_short_link(self, request, pk=None, **kwargs):
-        long_url = self.request.build_absolute_uri()
-        if not LinkShortener.objects.filter(
-                long_url=long_url
-        ).exists():
-            serializer = ShortenerSerializer(
-                data={'long_url': long_url}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-        slug = LinkShortener.objects.get(long_url=long_url).slug
-        return redirect(reverse(
-            'shortener:short_link',
-            kwargs={'slug': slug}))
+    def get_short_link(self, recipe):
+        return {'slug': recipe.slug}
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
@@ -180,22 +164,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     # Добавление в избранное
     def favorite(self, request, *args, **kwargs):
-        kwargs['recipe_id'] = kwargs['pk']
-        serializer = FavoriteSerializer
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
 
         if request.method == 'POST':
-            return Response(add_favorite_shopping_cart(
-                request, serializer, **kwargs
-            ),
-                status=status.HTTP_201_CREATED)
-
+            if Favorite.objects.filter(user=user,
+                                           recipe=recipe).exists():
+                raise ValidationError('Вы уже добавили рецепт в избранное')
+            Favorite.create(user=user, recipe=recipe)
+            return Response(status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
-            model_instance = Favorite
-            if delete_favorite_shopping_cart(
-                    request, model_instance, **kwargs
-            ):
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            get_object_or_404(Favorite, user=user, recipe=recipe).delete()
+            return Response(status=status.HTTP_201_CREATED)
 
     @action(methods=('post', 'delete'),
             url_path='shopping_cart',
@@ -203,22 +183,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     # Добавление рецепта в корзину
     def shopping_cart(self, request, *args, **kwargs):
-        kwargs['recipe_id'] = kwargs['pk']
-        serializer = ShoppingCartSerializer
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
 
         if request.method == 'POST':
-            return Response(add_favorite_shopping_cart(
-                request, serializer, **kwargs
-            ),
-                status=status.HTTP_201_CREATED)
+            if ShoppingCart.objects.filter(user=user,
+                                           recipe=recipe).exists():
+                raise ValidationError('Вы уже добавили рецепт в избранное')
+            ShoppingCart.create(user=user, recipe=recipe)
+            return Response(status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            model_instance = ShoppingCart
-            if delete_favorite_shopping_cart(
-                    request, model_instance, **kwargs
-            ):
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            get_object_or_404(ShoppingCart, user=user, recipe=recipe).delete()
+            return Response(status=status.HTTP_201_CREATED)
 
     @action(methods=('get',),
             url_path='download_shopping_cart',
