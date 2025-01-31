@@ -267,8 +267,9 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
 class AuthorFollowRepresentSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения информации о подписках пользователя"""
 
+    is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField(source='user.recipes_count')
+    recipes_count = serializers.ReadOnlyField(source='author.recipes_count')
 
     class Meta:
         model = User
@@ -276,12 +277,13 @@ class AuthorFollowRepresentSerializer(serializers.ModelSerializer):
                   'is_subscribed', 'recipes', 'recipes_count', 'avatar')
 
 
-    def get_recipes(self, user):
-        if self.recipes_limit:
-            recipes_limit = int(self.recipes_limit)
-            recipes = Recipe.objects.filter(
-                author=user.following
-            )[:recipes_limit]
-        else:
-            recipes = Recipe.objects.filter(author=user.following)
-        return RecipeGetShortSerializer(recipes, many=True).data
+    def get_recipes(self, author):
+        return RecipeGetShortSerializer(
+            Recipe.objects.filter(author=author), many=True).data
+
+    def get_is_subscribed(self, author):
+        user = self.context.get('request').user
+        return (user.is_authenticated
+                and author != user
+                and Follow.objects.filter(user=user,
+                                          author=author).exists())

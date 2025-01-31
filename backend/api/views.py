@@ -14,7 +14,8 @@ from rest_framework.exceptions import ValidationError
 
 from api.filtersets import IngredientFilter, RecipeFilterSet
 from api.permissions import IsOwnerOrReadOnly
-from api.serializers import (IngredientSerializer,
+from api.serializers import (AuthorFollowRepresentSerializer,
+                             IngredientSerializer,
                              RecipeAddUpdateSerializer,
                              RecipeGetSerializer, RecipeGetShortSerializer,
                              TagSerializer,
@@ -88,16 +89,11 @@ class UsersViewSet(UserViewSet):
             detail=False)
     # Подписки пользователя
     def get_subscriptions(self, request, **kwargs):
-        recipes_limit = request.query_params.get('recipes_limit')
+        recipes_limit = int(request.GET.get('recipes_limit', 10**10))
         kwargs['recipes_limit'] = recipes_limit
         subscriptions = Follow.objects.filter(user=request.user)
         paginator = FoodgramPaginator()
-        paginated_subscriptions = paginator.paginate_queryset(
-            subscriptions, request
-        )
-        serializer = FollowSerializer(paginated_subscriptions,
-                                      many=True,
-                                      **kwargs)
+        serializer = AuthorFollowRepresentSerializer(author=request.user)
         return paginator.get_paginated_response(serializer.data)
 
     @action(methods=('post', 'delete',),
@@ -107,32 +103,24 @@ class UsersViewSet(UserViewSet):
     # Подписка на пользователя
     def subscribe(self, request, *args, **kwargs):
         user = request.user
-        following = get_object_or_404(User, id=kwargs.pop('id'))
-        recipes_limit = request.query_params.get('recipes_limit')
-        kwargs['recipes_limit'] = recipes_limit
+        author = get_object_or_404(User, id=kwargs.pop('id'))
+
 
         if request.method == 'POST':
             if Follow.objects.filter(user=user,
-                                     following=following).exists():
+                                     author=author).exists():
                 return Response(
-                    data={'Error': f'Вы уже подписаны на {user.username}!'},
+                    data={'Error': f'Вы уже подписаны на {author.username}!'},
                     status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = FollowSerializer(
-                data={'user': user.id, 'following': following.id},
-                context={'request': request}, **kwargs
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save(user=user, following=following)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            Follow.objects.create(user=user, author=author)
+
+            serializer = AuthorFollowRepresentSerializer(author, context={'request': request})
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            if not Follow.objects.filter(user=user,
-                                         following=following).exists():
-                raise ValidationError(f'Вы не подписаны на {user.username}!')
-
-            Follow.objects.get(user=user,
-                               following=following).delete()
+            get_object_or_404(Follow, user=user, author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 
