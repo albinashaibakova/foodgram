@@ -15,12 +15,11 @@ from rest_framework.exceptions import ValidationError
 from api.filtersets import IngredientFilter, RecipeFilterSet
 from api.permissions import IsOwnerOrReadOnly
 from api.serializers import (IngredientSerializer,
-                             FollowSerializer,
                              RecipeAddUpdateSerializer,
-                             RecipeGetSerializer, TagSerializer,
+                             RecipeGetSerializer, RecipeGetShortSerializer,
+                             TagSerializer,
                              UserListSerializer,
                              UserAvatarSerializer)
-from api.utils import add_favorite_shopping_cart, delete_favorite_shopping_cart
 from recipes.models import (Ingredient, RecipeIngredient, Favorite,
                             Follow, Recipe, ShoppingCart, Tag)
 
@@ -171,11 +170,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if Favorite.objects.filter(user=user,
                                            recipe=recipe).exists():
                 raise ValidationError('Вы уже добавили рецепт в избранное')
-            Favorite.create(user=user, recipe=recipe)
-            return Response(status=status.HTTP_201_CREATED)
+            Favorite.objects.create(user=user, recipe=recipe)
+            return Response(RecipeGetShortSerializer(recipe).data,
+                            status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             get_object_or_404(Favorite, user=user, recipe=recipe).delete()
-            return Response(status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=('post', 'delete'),
             url_path='shopping_cart',
@@ -190,12 +190,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if ShoppingCart.objects.filter(user=user,
                                            recipe=recipe).exists():
                 raise ValidationError('Вы уже добавили рецепт в избранное')
-            ShoppingCart.create(user=user, recipe=recipe)
-            return Response(status=status.HTTP_201_CREATED)
+            ShoppingCart.objects.create(user=user, recipe=recipe)
+            return Response(RecipeGetShortSerializer(recipe).data,
+                            status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
             get_object_or_404(ShoppingCart, user=user, recipe=recipe).delete()
-            return Response(status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=('get',),
             url_path='download_shopping_cart',
