@@ -230,7 +230,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('recipe_ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.create(**validated_data)
+        recipe = Recipe.objects.create(**validated_data)
         self.add_ingredients_tags(recipe, ingredients, tags)
         return recipe
 
@@ -269,17 +269,18 @@ class AuthorFollowRepresentSerializer(serializers.ModelSerializer):
 
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.ReadOnlyField(source='author.recipes_count')
+    recipes_count = serializers.ReadOnlyField(source='author.recipes.count')
 
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name', 'last_name', 'email',
                   'is_subscribed', 'recipes', 'recipes_count', 'avatar')
 
-
     def get_recipes(self, author):
+        recipes_limit = int(self.context['request'].GET.get('recipes_limit', 10 ** 10))
+        recipes = Recipe.objects.filter(author=author)
         return RecipeGetShortSerializer(
-            Recipe.objects.filter(author=author), many=True).data
+            recipes[:recipes_limit], many=True).data
 
     def get_is_subscribed(self, author):
         user = self.context.get('request').user
