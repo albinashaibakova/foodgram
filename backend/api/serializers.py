@@ -177,7 +177,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         return ShoppingCart.objects.filter(user=user,
                                        recipe=recipe.id).exists()
 
-    def get_slug(self, instance):
+    def get_slug(self, instance=None):
         if self.context['request'].method == 'POST':
             slug = ''.join(choice(string.ascii_letters)
                            for x in range(10))
@@ -230,7 +230,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('recipe_ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = Recipe.objects.create(slug=self.get_slug(), **validated_data)
         self.add_ingredients_tags(recipe, ingredients, tags)
         return recipe
 

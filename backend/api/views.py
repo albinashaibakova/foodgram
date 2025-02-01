@@ -89,10 +89,16 @@ class UsersViewSet(UserViewSet):
             detail=False)
     # Подписки пользователя
     def get_subscriptions(self, request, **kwargs):
-
-        subscriptions = Follow.objects.filter(user=request.user)
         paginator = FoodgramPaginator()
-        serializer = AuthorFollowRepresentSerializer(author=request.user,
+        subscription_authors = [
+            subscription.author for subscription in
+            Follow.objects.filter(user=request.user)
+        ]
+        paginated_subscriptions = paginator.paginate_queryset(
+            subscription_authors, request
+        )
+        serializer = AuthorFollowRepresentSerializer(paginated_subscriptions,
+                                                     many=True,
                                                      context={'request': request})
         return paginator.get_paginated_response(serializer.data)
 
@@ -139,12 +145,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeAddUpdateSerializer
         return RecipeGetSerializer
 
-    @action(detail=True, methods=('get', ),
-            permission_classes=(permissions.AllowAny, ),
-            url_path='get-link')
     # Получение короткой ссылки на рецепт
-    def get_short_link(self, recipe):
-        return {'slug': recipe.slug}
+    def get_short_link(self, *args, **kwargs):
+        long_url = self.request.build_absolute_uri().split('api')[0]
+        slug = get_object_or_404(Recipe, id=kwargs['pk']).slug
+        return Response({'slug': f'{long_url}{slug}'})
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
