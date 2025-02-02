@@ -11,17 +11,19 @@ def render_shopping_cart(self, request, *args, **kwargs):
     ingredients = RecipeIngredient.objects.filter(
         recipe__shopping_cart__user=request.user
     ).values(
+        'recipe__name',
         'ingredient__name',
         'ingredient__measurement_unit'
     ).annotate(quantity=Sum('amount')).order_by('amount')
 
     today = date.today().strftime('%d-%m-%Y')
     shopping_list = f'Список покупок на: {today}\n\n'
-    for ingredient in ingredients:
+    for index, ingredient in enumerate(ingredients, start=1):
         shopping_list += (
-            f'{ingredient["ingredient__name"]} - '
+            f'{index}) {str(ingredient["ingredient__name"]).capitalize()} - '
             f'{ingredient["quantity"]} '
-            f'{ingredient["ingredient__measurement_unit"]}\n'
+            f'{str(ingredient["ingredient__measurement_unit"])[:2]}. '
+            f'Рецепт - {ingredient["recipe__name"]}\n'
         )
 
     filename = 'shopping_list.txt'

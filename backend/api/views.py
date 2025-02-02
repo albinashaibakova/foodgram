@@ -156,19 +156,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     # Добавление в избранное
     def favorite(self, request, *args, **kwargs):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
 
         if request.method == 'POST':
-            if Favorite.objects.filter(user=user,
-                                           recipe=recipe).exists():
-                raise ValidationError('Вы уже добавили рецепт в избранное')
-            Favorite.objects.create(user=user, recipe=recipe)
+            recipe = self.add_favorite_shopping_cart(
+                user=request.user,
+                recipe=get_object_or_404(Recipe, id=kwargs['pk']),
+                model=Favorite)
+
             return Response(RecipeGetShortSerializer(recipe).data,
                             status=status.HTTP_201_CREATED)
+
         if request.method == 'DELETE':
-            get_object_or_404(Favorite, user=user, recipe=recipe).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return self.delete_favorite_shopping_cart(
+                user=request.user,
+                recipe=get_object_or_404(Recipe, id=kwargs['pk']),
+                model=Favorite)
 
     @action(methods=('post', 'delete'),
             url_path='shopping_cart',
@@ -176,20 +178,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     # Добавление рецепта в корзину
     def shopping_cart(self, request, *args, **kwargs):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
 
         if request.method == 'POST':
-            if ShoppingCart.objects.filter(user=user,
-                                           recipe=recipe).exists():
-                raise ValidationError('Вы уже добавили рецепт в избранное')
-            ShoppingCart.objects.create(user=user, recipe=recipe)
+            recipe = self.add_favorite_shopping_cart(
+                user=request.user,
+                recipe=get_object_or_404(Recipe, id=kwargs['pk']),
+                model=ShoppingCart)
+
             return Response(RecipeGetShortSerializer(recipe).data,
                             status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            get_object_or_404(ShoppingCart, user=user, recipe=recipe).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+
+            return self.delete_favorite_shopping_cart(
+                user=request.user,
+                recipe=get_object_or_404(Recipe, id=kwargs['pk']),
+                model=ShoppingCart)
 
     @action(methods=('get',),
             url_path='download_shopping_cart',
@@ -201,31 +205,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return render_shopping_cart(self, request, *args, **kwargs)
         raise ValidationError('Отсутствуют рецепты в корзине')
 
-    def add_favorite_shopping_cart(request, serializer, *args, **kwargs):
+    def add_favorite_shopping_cart(self, user, recipe, model):
         """Функция для добавления рецепта в избранное или в корзину"""
 
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=kwargs['recipe_id'])
-        serializer = serializer(data={
-            'user': user.id,
-            'recipe': recipe.id
-        })
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return serializer.data
+        if model.objects.filter(user=user,
+                                recipe=recipe).exists():
+            raise ValidationError(f'Рецепт уже добавлен')
 
-    def delete_favorite_shopping_cart(request, model, *args, **kwargs):
+        return model.objects.create(user=user, recipe=recipe).recipe
+
+    def delete_favorite_shopping_cart(self, user, recipe, model):
         """Функция для удаления рецепта из избранного или в корзины"""
 
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=kwargs['recipe_id'])
-
-        if not model.objects.filter(user=user,
-                                    recipe=recipe).exists():
-            return False
-        object = model.objects.filter(user=user, recipe=recipe)
-        object.delete()
-        return True
+        get_object_or_404(model,
+                          user=user,
+                          recipe=recipe).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
