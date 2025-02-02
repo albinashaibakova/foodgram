@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 
 from recipes.models import (Ingredient, RecipeIngredient,
@@ -9,9 +10,26 @@ User = get_user_model()
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email')
-    search_fields = ('username', 'email')
+class FoodgramUserAdmin(UserAdmin):
+    list_display = ('username',
+                    'email',
+                    'first_name',
+                    'last_name',
+                    'password',
+                    'recipes_count',
+                    'followers_count')
+    search_fields = ('username',
+                     'email')
+
+    def recipes_count(self, user):
+        return user.recipes.count()
+
+    recipes_count.short_description = 'Количество рецептов'
+
+    def followers_count(self, user):
+        return user.followers.count()
+
+    followers_count.short_description = 'Количество подписчиков'
 
 
 @admin.register(Ingredient)
