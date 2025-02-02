@@ -1,9 +1,7 @@
-import aspose.pdf as ap
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import (permissions, pagination,
@@ -21,6 +19,7 @@ from api.serializers import (AuthorFollowRepresentSerializer,
                              TagSerializer,
                              UserListSerializer,
                              UserAvatarSerializer)
+from api.utils import render_shopping_cart
 from recipes.models import (Ingredient, RecipeIngredient, Favorite,
                             Follow, Recipe, ShoppingCart, Tag)
 
@@ -149,7 +148,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_short_link(self, *args, **kwargs):
         long_url = self.request.build_absolute_uri().split('api')[0]
         slug = get_object_or_404(Recipe, id=kwargs['pk']).slug
-        return Response({'slug': f'{long_url}{slug}'})
+        return Response({'short-link': f'{long_url}{slug}'})
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
@@ -198,28 +197,36 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=False)
     # Скачивание ингредиентов для рецептов, добавленных в корзину
     def download_shopping_cart(self, request, *args, **kwargs):
-        ingredients = RecipeIngredient.objects.filter(
-            recipe__shopping_cart__user=request.user
-        ).values(
-            'ingredient__name',
-            'ingredient__measurement_unit'
-        ).annotate(quantity=Sum('amount'))
+        if request.user.shopping_cart.exists():
+            return render_shopping_cart(self, request, *args, **kwargs)
+        raise ValidationError('Отсутствуют рецепты в корзине')
 
-        document = ap.Document()
+    def add_favorite_shopping_cart(request, serializer, *args, **kwargs):
+        """Функция для добавления рецепта в избранное или в корзину"""
 
-        page = document.pages.add()
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=kwargs['recipe_id'])
+        serializer = serializer(data={
+            'user': user.id,
+            'recipe': recipe.id
+        })
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return serializer.data
 
-        for ingredient in ingredients:
-            text_fragment = ap.text.TextFragment(
-                f'{ingredient["ingredient__name"]} - '
-                f'{ingredient["quantity"]}, '
-                f'{ingredient["ingredient__measurement_unit"]}')
-            page.paragraphs.add(text_fragment)
-            document.save('output.pdf')
+    def delete_favorite_shopping_cart(request, model, *args, **kwargs):
+        """Функция для удаления рецепта из избранного или в корзины"""
 
-        response = HttpResponse(document, content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="output.pdf"'
-        return response
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=kwargs['recipe_id'])
+
+        if not model.objects.filter(user=user,
+                                    recipe=recipe).exists():
+            return False
+        object = model.objects.filter(user=user, recipe=recipe)
+        object.delete()
+        return True
+
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

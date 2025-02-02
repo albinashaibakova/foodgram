@@ -1,30 +1,30 @@
-from django.shortcuts import get_object_or_404
-from recipes.models import Recipe
+from datetime import date
+
+from django.db.models import Sum
+from django.http import FileResponse
+
+from recipes.models import RecipeIngredient
 
 
-def add_favorite_shopping_cart(request, serializer, *args, **kwargs):
-    """Функция для добавления рецепта в избранное или в корзину"""
+def render_shopping_cart(self, request, *args, **kwargs):
 
-    user = request.user
-    recipe = get_object_or_404(Recipe, id=kwargs['recipe_id'])
-    serializer = serializer(data={
-        'user': user.id,
-        'recipe': recipe.id
-    })
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
-    return serializer.data
+    ingredients = RecipeIngredient.objects.filter(
+        recipe__shopping_cart__user=request.user
+    ).values(
+        'ingredient__name',
+        'ingredient__measurement_unit'
+    ).annotate(quantity=Sum('amount')).order_by('amount')
 
+    today = date.today().strftime('%d-%m-%Y')
+    shopping_list = f'Список покупок на: {today}\n\n'
+    for ingredient in ingredients:
+        shopping_list += (
+            f'{ingredient["ingredient__name"]} - '
+            f'{ingredient["quantity"]} '
+            f'{ingredient["ingredient__measurement_unit"]}\n'
+        )
 
-def delete_favorite_shopping_cart(request, model, *args, **kwargs):
-    """Функция для удаления рецепта из избранного или в корзины"""
-
-    user = request.user
-    recipe = get_object_or_404(Recipe, id=kwargs['recipe_id'])
-
-    if not model.objects.filter(user=user,
-                                recipe=recipe).exists():
-        return False
-    object = model.objects.filter(user=user, recipe=recipe)
-    object.delete()
-    return True
+    filename = 'shopping_list.txt'
+    return FileResponse(shopping_list,
+                        filename=filename,
+                        content_type='text/plain')

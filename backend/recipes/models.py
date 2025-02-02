@@ -197,7 +197,6 @@ class BaseModel(models.Model):
         ordering = ('recipe__name', 'user__username')
         verbose_name = 'Рецепт в корзине/избранном'
         verbose_name_plural = 'Рецепты в корзине/избранном'
-        default_related_name = '%(app_label)s_%(class)s_related'
 
     def __str__(self):
         return self.recipe.name
@@ -209,6 +208,7 @@ class Favorite(BaseModel):
     class Meta(BaseModel.Meta):
         verbose_name = 'Рецепт в избранном'
         verbose_name_plural = 'Рецепты в избранном'
+        default_related_name = 'favorites'
         constraints = [UniqueConstraint(fields=['recipe', 'user'],
                                         name='unique_favorite')]
 
@@ -219,5 +219,6 @@ class ShoppingCart(BaseModel):
     class Meta(BaseModel.Meta):
         verbose_name = 'Рецепт в корзине'
         verbose_name_plural = 'Рецепты в корзине'
+        default_related_name = 'shopping_cart'
         constraints = [UniqueConstraint(fields=['recipe', 'user'],
                                         name='unique_shopping_cart')]
