@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
+from django.utils.safestring import mark_safe
 
 from recipes.models import (Ingredient, RecipeIngredient,
                             Recipe, Tag,)
@@ -17,6 +18,7 @@ class FoodgramUserAdmin(UserAdmin):
     list_display = ('username',
                     'email',
                     'last_first_name',
+                    'avatar',
                     'password',
                     'recipes_count',
                     'following_authors_count',
@@ -28,6 +30,11 @@ class FoodgramUserAdmin(UserAdmin):
 
     def last_first_name(self, user):
         return ' '.join([user.last_name, user.first_name])
+
+    @mark_safe
+    def avatar(self, user):
+        return '<img src="%s" width ="50" height="50"/>'%(user.avatar)
+
 
     def recipes_count(self, user):
         return user.recipes.count()
@@ -42,8 +49,6 @@ class FoodgramUserAdmin(UserAdmin):
     recipes_count.short_description = 'Количество рецептов'
     following_authors_count.short_description = 'Количество подписок'
     followers_count.short_description = 'Количество подписчиков'
-
-
 
 
 
