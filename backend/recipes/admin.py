@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
+from django_filters import filters
 
 from recipes.models import (Ingredient, RecipeIngredient,
                             Recipe, Tag,)
@@ -11,25 +12,43 @@ User = get_user_model()
 
 @admin.register(User)
 class FoodgramUserAdmin(UserAdmin):
+    has_recipes = filters.BooleanFilter(field_name='user__recipes', distinct=True)
+    has_followers = filters.BooleanFilter(field_name='user__followers', distinct=True)
+    has_following_authors = filters.BooleanFilter(field_name='user__authors', distinct=True)
+
+
     list_display = ('username',
                     'email',
-                    'first_name',
-                    'last_name',
+                    'last_first_name',
                     'password',
                     'recipes_count',
+                    'following_authors_count',
                     'followers_count')
     search_fields = ('username',
-                     'email')
+                     'email',
+                     )
+
+
+
+    def last_first_name(self, user):
+        return ' '.join([user.last_name, user.first_name])
 
     def recipes_count(self, user):
         return user.recipes.count()
 
-    recipes_count.short_description = 'Количество рецептов'
+    def following_authors_count(self, user):
+        return user.authors.count()
 
     def followers_count(self, user):
         return user.followers.count()
 
+    last_first_name.short_description = 'Фамилия Имя'
+    recipes_count.short_description = 'Количество рецептов'
+    following_authors_count.short_description = 'Количество подписок'
     followers_count.short_description = 'Количество подписчиков'
+
+
+
 
 
 @admin.register(Ingredient)
