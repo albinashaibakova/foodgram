@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from django_filters import filters
+from django.utils.translation import gettext_lazy as _
 
 from recipes.models import (Ingredient, RecipeIngredient,
                             Recipe, Tag,)
@@ -10,13 +12,30 @@ from recipes.models import (Ingredient, RecipeIngredient,
 User = get_user_model()
 
 
+class HasRecipesFilter(admin.SimpleListFilter):
+    title = _('has recipes')
+    parameter_name = 'Есть рецепты'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('has_recipes=0', _('Нет')),
+            ('has_recipes=1', _('Да'))
+        ]
+
+    def queryset(self, request, users):
+        if self.value() == 'has_recipes=0':
+            return users.annotate(
+                has_recipes=Count('recipes')
+            ).filter(recipes__isnull=True).filter(has_recipes=0)
+
+        if self.value() == 'has_recipes=1':
+            return users.annotate(
+                has_recipes=Count('recipes')
+            ).filter(recipes__isnull=False).filter(has_recipes__gte=1)
+
+
 @admin.register(User)
 class FoodgramUserAdmin(UserAdmin):
-    has_recipes = filters.BooleanFilter(field_name='user__recipes', distinct=True)
-    has_followers = filters.BooleanFilter(field_name='user__followers', distinct=True)
-    has_following_authors = filters.BooleanFilter(field_name='user__authors', distinct=True)
-
-
     list_display = ('username',
                     'email',
                     'last_first_name',
@@ -25,9 +44,8 @@ class FoodgramUserAdmin(UserAdmin):
                     'following_authors_count',
                     'followers_count')
     search_fields = ('username',
-                     'email',
-                     )
-
+                     'email',)
+    list_filter = [HasRecipesFilter]
 
 
     def last_first_name(self, user):
