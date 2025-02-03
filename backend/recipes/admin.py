@@ -1,37 +1,15 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
-from django.db.models import Count
-from django_filters import filters
-from django.utils.translation import gettext_lazy as _
 
 from recipes.models import (Ingredient, RecipeIngredient,
                             Recipe, Tag,)
-
+from recipes.admin_filters import (HasRecipesFilter,
+                                   HasFollowersFilter,
+                                   HasFollowingAuthorsFilter)
 
 User = get_user_model()
 
-
-class HasRecipesFilter(admin.SimpleListFilter):
-    title = _('has recipes')
-    parameter_name = 'Есть рецепты'
-
-    def lookups(self, request, model_admin):
-        return [
-            ('has_recipes=0', _('Нет')),
-            ('has_recipes=1', _('Да'))
-        ]
-
-    def queryset(self, request, users):
-        if self.value() == 'has_recipes=0':
-            return users.annotate(
-                has_recipes=Count('recipes')
-            ).filter(recipes__isnull=True).filter(has_recipes=0)
-
-        if self.value() == 'has_recipes=1':
-            return users.annotate(
-                has_recipes=Count('recipes')
-            ).filter(recipes__isnull=False).filter(has_recipes__gte=1)
 
 
 @admin.register(User)
@@ -45,7 +23,7 @@ class FoodgramUserAdmin(UserAdmin):
                     'followers_count')
     search_fields = ('username',
                      'email',)
-    list_filter = [HasRecipesFilter]
+    list_filter = [HasRecipesFilter, HasFollowersFilter, HasFollowingAuthorsFilter]
 
 
     def last_first_name(self, user):
