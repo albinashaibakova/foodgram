@@ -133,9 +133,9 @@ class Recipe(models.Model):
     name = models.CharField(max_length=NAME_MAX_LENGTH,
                             verbose_name='Название рецепта')
     ingredients = models.ManyToManyField(Ingredient,
-                                         verbose_name='Список ингредиентов')
+                                         verbose_name='Продукты')
     tags = models.ManyToManyField(Tag,
-                             verbose_name='Список тегов')
+                             verbose_name='Тэги')
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.SmallIntegerField(
         validators=[MinValueValidator(COOKING_TIME_MIN)],
