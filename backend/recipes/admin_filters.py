@@ -2,9 +2,34 @@ from django.contrib import admin
 from django.db.models import Count
 from django.utils.translation import gettext_lazy as _
 
+
+
+class CookingTimeFilter(admin.SimpleListFilter):
+    title = _('Время приготовления')
+    parameter_name = 'cooking_time'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('lt5', _('Меньше 5 минут')),
+            ('lt20', _('Меньше 20 минут')),
+            ('gt20', _('Долго'))
+        ]
+
+    def queryset(self, request, recipes):
+        if self.value() == 'lt5':
+            return recipes.filter(cooking_time__lt=5)
+
+        if self.value() == 'lt20':
+            return recipes.filter(cooking_time__lt=20, cooking_time__gte=5)
+
+        if self.value() == 'gt20':
+            return recipes.filter(cooking_time__gte=20)
+
+
+
 class HasRecipesFilter(admin.SimpleListFilter):
     title = _('Есть рецепты')
-    parameter_name = 'Есть рецепты'
+    parameter_name = 'has_recipes'
 
     def lookups(self, request, model_admin):
         return [
@@ -26,7 +51,7 @@ class HasRecipesFilter(admin.SimpleListFilter):
 
 class HasFollowersFilter(admin.SimpleListFilter):
     title = _('Есть подписчики')
-    parameter_name = 'Есть подписчики'
+    parameter_name = 'has_followers'
 
     def lookups(self, request, model_admin):
         return [
@@ -48,7 +73,7 @@ class HasFollowersFilter(admin.SimpleListFilter):
 
 class HasFollowingAuthorsFilter(admin.SimpleListFilter):
     title = _('Есть подписки')
-    parameter_name = 'Есть подписки'
+    parameter_name = 'has_following_authors'
 
     def lookups(self, request, model_admin):
         return [

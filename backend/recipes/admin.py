@@ -8,7 +8,8 @@ from recipes.models import (Ingredient, Favorite,
                             RecipeIngredient,
                             Recipe, ShoppingCart,
                             Tag)
-from recipes.admin_filters import (HasRecipesFilter,
+from recipes.admin_filters import (CookingTimeFilter,
+                                   HasRecipesFilter,
                                    HasFollowersFilter,
                                    HasFollowingAuthorsFilter)
 
@@ -92,7 +93,7 @@ class RecipeAdmin(admin.ModelAdmin):
                     'display_ingredients',
                     'recipe_image')
     search_fields = ('name', 'author', 'tags')
-    list_filter = ('tags', 'author')
+    list_filter = ('tags', 'author', CookingTimeFilter)
     list_per_page = 25
 
 
@@ -103,17 +104,17 @@ class RecipeAdmin(admin.ModelAdmin):
     def recipe_image(self, recipe):
         return mark_safe('<img src="%s" width ="50" height="50"/>'%(recipe.image))
 
-    @mark_safe
-    @admin.display(description = 'Продукты')
-    def display_ingredients(self, recipe):
 
-        return ', '.join(f'{recipeingredient.ingredient.name} -  {recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} {recipeingredient.ingredient.measurement_unit}'
+    @admin.display(description = 'Продукты')
+    @mark_safe
+    def display_ingredients(self, recipe):
+        return ', '.join(f'{recipeingredient.ingredient.name.capitalize()} -  {recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} {recipeingredient.ingredient.measurement_unit}'
                          for recipeingredient in recipe.recipeingredients.all())
 
-    @mark_safe
+
     @admin.display(description = 'Тэги', )
     def display_tags(self, recipe):
-        return ', '.join(tag.name for tag in recipe.tags.all())
+        return mark_safe(', '.join(tag.name for tag in recipe.tags.all()))
 
     is_favorite_count.short_description = 'Сколько раз в избранном'
     recipe_image.short_description = 'Картинка блюда'
