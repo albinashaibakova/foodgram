@@ -106,8 +106,9 @@ class RecipeAdmin(admin.ModelAdmin):
     @mark_safe
     @admin.display(description = 'Продукты')
     def display_ingredients(self, recipe):
-        return ', '.join(ingredient.name
-                          for ingredient in recipe.ingredients.all())
+
+        return ', '.join(f'{recipeingredient.ingredient.name} -  {recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} {recipeingredient.ingredient.measurement_unit}'
+                         for recipeingredient in recipe.recipeingredients.all())
 
     @mark_safe
     @admin.display(description = 'Тэги', )
@@ -122,7 +123,8 @@ class RecipeAdmin(admin.ModelAdmin):
 class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = (
         'ingredient_id',
-        'recipe_id'
+        'recipe_id',
+        'amount'
     )
     list_filter = ('ingredient_id',)
     search_fields = ('recipe_id',)

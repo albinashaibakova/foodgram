@@ -112,7 +112,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
     ingredients = IngredientGetSerializer(many=True,
                                           read_only=True,
-                                          source='recipe_ingredients')
+                                          source='recipeingredients')
     author = UserListSerializer()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -144,7 +144,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
 
     ingredients = AddIngredientSerializer(
         many=True, write_only=True,
-        source='recipe_ingredients'
+        source='recipeingredients'
     )
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
@@ -228,14 +228,14 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         return recipe
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('recipe_ingredients')
+        ingredients = validated_data.pop('recipeingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(slug=self.get_slug(), **validated_data)
         self.add_ingredients_tags(recipe, ingredients, tags)
         return recipe
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('recipe_ingredients')
+        ingredients = validated_data.pop('recipeingredients')
         tags = validated_data.pop('tags')
         instance.tags.clear()
         instance.tags.set(tags)
@@ -248,7 +248,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         if not attrs.get('image'):
             raise serializers.ValidationError(
                 'Рецепт должен содержать изображение')
-        if not attrs.get('recipe_ingredients'):
+        if not attrs.get('recipeingredients'):
             raise serializers.ValidationError(
                 'Рецепт должен содержать ингредиенты')
         if not attrs.get('tags'):
