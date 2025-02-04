@@ -26,7 +26,6 @@ class CookingTimeFilter(admin.SimpleListFilter):
             return recipes.filter(cooking_time__gte=20)
 
 
-
 class HasRecipesFilter(admin.SimpleListFilter):
     title = _('Есть рецепты')
     parameter_name = 'has_recipes'

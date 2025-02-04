@@ -16,6 +16,11 @@ from recipes.admin_filters import (CookingTimeFilter,
 User = get_user_model()
 
 
+class RecipeIngredientInline(admin.TabularInline):
+
+    model = RecipeIngredient
+    min_num = 1
+
 
 @admin.register(User)
 class FoodgramUserAdmin(UserAdmin):
@@ -95,6 +100,8 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'author', 'tags')
     list_filter = ('tags', 'author', CookingTimeFilter)
     list_per_page = 25
+    inlines = [RecipeIngredientInline]
+
 
 
     def is_favorite_count(self, recipe):
@@ -106,10 +113,17 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
     @admin.display(description = 'Продукты')
-    @mark_safe
     def display_ingredients(self, recipe):
-        return ', '.join(f'{recipeingredient.ingredient.name.capitalize()} -  {recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} {recipeingredient.ingredient.measurement_unit}'
-                         for recipeingredient in recipe.recipeingredients.all())
+        ingredients_info = []
+
+        for recipeingredient in recipe.recipeingredients.all():
+            ingredients_info.append(
+                f'<br>{recipeingredient.ingredient.name.capitalize()} -  {recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} {recipeingredient.ingredient.measurement_unit}'
+            )
+            print(ingredients_info)
+            return mark_safe('<br>'.join(ingredients_info))
+
+        return '-'
 
 
     @admin.display(description = 'Тэги', )
@@ -118,6 +132,22 @@ class RecipeAdmin(admin.ModelAdmin):
 
     is_favorite_count.short_description = 'Сколько раз в избранном'
     recipe_image.short_description = 'Картинка блюда'
+
+    fieldsets = (
+        (
+            None,
+            {
+                'fields': (
+                    'author',
+                    ('name', 'cooking_time',),
+                    'text',
+                    'image',
+                    'tags',
+                )
+            },
+        ),
+    )
+
 
 
 @admin.register(RecipeIngredient)
