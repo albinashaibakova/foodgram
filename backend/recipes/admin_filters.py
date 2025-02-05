@@ -41,7 +41,8 @@ class CookingTimeFilter(admin.SimpleListFilter):
                 ('avg', _(
                     f'Меньше {more_avg} минут '
                     f'('
-                    f'{recipes.filter(cooking_time__lt=more_avg,cooking_time__gt=less_avg).count()}'
+                    f'''{recipes.filter(cooking_time__lt=more_avg,
+                                        cooking_time__gt=less_avg).count()}'''
                     f')')),
 
                 ('more_than_avg', _(
@@ -58,7 +59,7 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
             if self.value() == 'avg':
                 return recipes.filter(cooking_time__lt=more_avg,
-                                    cooking_time__gt=less_avg)
+                                      cooking_time__gt=less_avg)
 
             if self.value() == 'more_than_avg':
                 return recipes.filter(cooking_time__gte=more_avg)
@@ -127,4 +128,5 @@ class HasFollowingAuthorsFilter(admin.SimpleListFilter):
         if self.value() == 'has_following_authors=1':
             return users.annotate(
                 has_following_authors=Count('authors')
-            ).filter(authors__isnull=False).filter(has_following_authors__gte=1)
+            ).filter(authors__isnull=False
+                     ).filter(has_following_authors__gte=1)

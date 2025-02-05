@@ -45,7 +45,8 @@ class FoodgramUserAdmin(UserAdmin):
     @mark_safe
     def user_avatar(self, user):
         if user.avatar:
-            return '<img src="%s" width ="50" height="50"/>' % (user.avatar.url)
+            return ('<img src="%s" width ="50" height="50"/>'
+                    % (user.avatar.url))
         else:
             return '-'
 
