@@ -65,6 +65,7 @@ class UsersViewSet(UserViewSet):
     def set_avatar(self, request):
         if request.method == 'PUT':
             if 'avatar' in request.data:
+                print(request.data)
                 serializer = UserAvatarSerializer(
                     request.user,
                     data=request.data)
@@ -72,6 +73,9 @@ class UsersViewSet(UserViewSet):
                 serializer.save()
                 return Response(serializer.data,
                                 status=status.HTTP_200_OK)
+            else:
+                raise ValidationError('Загрузите аватар!')
+
         if request.method == 'DELETE':
             data = request.data
             if 'avatar' not in data:
@@ -180,6 +184,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, *args, **kwargs):
 
         if request.method == 'POST':
+
             recipe = self.add_favorite_shopping_cart(
                 user=request.user,
                 recipe=get_object_or_404(Recipe, id=kwargs['pk']),

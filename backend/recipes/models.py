@@ -45,7 +45,7 @@ class FoodgramUser(AbstractUser):
         blank=True,
         null=True,
         upload_to='users/avatars/',
-        verbose_name='Url аватара')
+        verbose_name='Аватар')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
@@ -141,7 +141,7 @@ class Recipe(models.Model):
         validators=[MinValueValidator(COOKING_TIME_MIN)],
         verbose_name='Время приготовления (в минутах)'
     )
-    image = models.ImageField(verbose_name='Url картинки',
+    image = models.ImageField(verbose_name='Фото блюда',
                               upload_to='recipes/images',
                               null=False)
     slug = models.SlugField(unique=True,

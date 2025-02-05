@@ -37,14 +37,12 @@ class FoodgramUserAdmin(UserAdmin):
     list_filter = [HasRecipesFilter, HasFollowersFilter, HasFollowingAuthorsFilter]
     list_per_page = 25
 
-
     def last_first_name(self, user):
         return ' '.join([user.last_name, user.first_name])
 
     @mark_safe
     def avatar(self, user):
         return '<img src="%s" width ="50" height="50"/>'%(user.avatar)
-
 
     def recipes_count(self, user):
         return user.recipes.count()
@@ -78,13 +76,11 @@ class IngredientAdmin(RecipesCountMixin, admin.ModelAdmin):
     list_per_page = 25
 
 
-
 @admin.register(Tag)
 class TagAdmin(RecipesCountMixin, admin.ModelAdmin):
     list_display = ('name', 'slug', 'recipes_count')
     search_fields = ('name', 'slug')
     list_per_page = 25
-
 
 
 @admin.register(Recipe)
@@ -102,36 +98,36 @@ class RecipeAdmin(admin.ModelAdmin):
     list_per_page = 25
     inlines = [RecipeIngredientInline]
 
-
-
     def is_favorite_count(self, recipe):
         return recipe.favorites.count()
-
 
     @mark_safe
     def recipe_image(self, recipe):
         return '<img src="%s" width ="50" height="50"/>'%(recipe.image)
 
-
     @mark_safe
-    @admin.display(description = 'Продукты')
+    @admin.display(description='Продукты')
     def display_ingredients(self, recipe):
         ingredients_info = []
 
         for recipeingredient in recipe.recipeingredients.all():
             ingredients_info.append(
-                f'<br>{recipeingredient.ingredient.name.capitalize()} - '
+                f'{recipeingredient.ingredient.name.capitalize()} - '
                 f'{recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} '
-                f'{recipeingredient.ingredient.measurement_unit}'
+                f'{recipeingredient.ingredient.measurement_unit}<br>'
             )
 
-        return '<br>'.join(ingredients_info)
-
+        return ''.join(ingredients_info)
 
     @mark_safe
-    @admin.display(description = 'Тэги', )
+    @admin.display(description='Тэги', )
     def display_tags(self, recipe):
-        return ', '.join(tag.name for tag in recipe.tags.all())
+        tags_info = []
+        for tag in recipe.tags.all():
+            tags_info.append(
+                f'{tag.name}<br>'
+            )
+        return ''.join(tags_info)
 
     is_favorite_count.short_description = 'Сколько раз в избранном'
     recipe_image.short_description = 'Картинка блюда'
@@ -152,27 +148,31 @@ class RecipeAdmin(admin.ModelAdmin):
     )
 
 
-
 @admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = (
-        'ingredient_id',
-        'recipe_id',
+        'ingredient',
+        'recipe',
         'amount'
     )
-    list_filter = ('ingredient_id',)
-    search_fields = ('recipe_id',)
+    list_filter = ('ingredient',)
+    search_fields = ('recipe',)
+    list_per_page = 25
 
 
 @admin.register(Favorite)
 class Favorite(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+    list_per_page = 25
+
 
 @admin.register(ShoppingCart)
 class ShoppingCart(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+    list_per_page = 25
 
 
 @admin.register(Follow)
 class Follow(admin.ModelAdmin):
     list_display = ('user', 'author')
+    list_per_page = 25

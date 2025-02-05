@@ -30,27 +30,31 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
 
-        recipes = model_admin.model.objects.all()
-        less_than_average, more_than_average = self.get_average_cooking_time(recipes)
+        recipes = model_admin.get_queryset(request)
+        less_avg, more_avg = self.get_average_cooking_time(recipes)
 
         return [
-            ('less_than_average', _(f'Меньше {less_than_average} минут')),
-            ('average', _(f'Меньше {more_than_average} минут')),
-            ('more_than_average', _('Долго'))
-        ]
+            ('less_than_average', _(f'Меньше {less_avg} минут '
+                                    f'({recipes.filter(cooking_time__lte=less_avg).count()})')),
+
+            ('average', _(f'Меньше {more_avg} минут '
+                          f'({recipes.filter(cooking_time__lt=more_avg, cooking_time__gt=less_avg).count()})')),
+            ('more_than_average', _(f'Дольше {more_avg} минут '
+                                    f'({recipes.filter(cooking_time__gte=more_avg).count()})'))
+                                    ]
 
     def queryset(self, request, recipes):
-        less_than_average, more_than_average = self.get_average_cooking_time(recipes)
+        less_avg, more_avg = self.get_average_cooking_time(recipes)
 
         if self.value() == 'less_than_average':
-            return recipes.filter(cooking_time__lte=less_than_average)
+            return recipes.filter(cooking_time__lte=less_avg)
 
         if self.value() == 'average':
-            return recipes.filter(cooking_time__lt=more_than_average,
-                                  cooking_time__gt=less_than_average)
+            return recipes.filter(cooking_time__lt=more_avg,
+                                  cooking_time__gt=less_avg)
 
         if self.value() == 'more_than_average':
-            return recipes.filter(cooking_time__gte=more_than_average)
+            return recipes.filter(cooking_time__gte=more_avg)
 
 
 class HasRecipesFilter(admin.SimpleListFilter):
