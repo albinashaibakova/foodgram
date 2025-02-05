@@ -135,7 +135,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(Ingredient,
                                          verbose_name='Продукты')
     tags = models.ManyToManyField(Tag,
-                             verbose_name='Тэги')
+                                  verbose_name='Тэги')
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.SmallIntegerField(
         validators=[MinValueValidator(COOKING_TIME_MIN)],

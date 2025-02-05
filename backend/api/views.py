@@ -1,6 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Sum
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -20,8 +18,8 @@ from api.serializers import (AuthorFollowRepresentSerializer,
                              UserListSerializer,
                              UserAvatarSerializer)
 from api.utils import render_shopping_cart
-from recipes.models import (Ingredient, RecipeIngredient, Favorite,
-                            Follow, Recipe, ShoppingCart, Tag)
+from recipes.models import (Ingredient, Favorite, Follow,
+                            Recipe, ShoppingCart, Tag)
 
 
 User = get_user_model()
@@ -100,9 +98,10 @@ class UsersViewSet(UserViewSet):
         paginated_subscriptions = paginator.paginate_queryset(
             subscription_authors, request
         )
-        serializer = AuthorFollowRepresentSerializer(paginated_subscriptions,
-                                                     many=True,
-                                                     context={'request': request})
+        serializer = AuthorFollowRepresentSerializer(
+            paginated_subscriptions,
+            many=True,
+            context={'request': request})
         return paginator.get_paginated_response(serializer.data)
 
     @action(methods=('post', 'delete',),
@@ -125,7 +124,9 @@ class UsersViewSet(UserViewSet):
                 raise ValidationError('Вы не можете подписаться на себя!')
             Follow.objects.create(user=user, author=author)
 
-            serializer = AuthorFollowRepresentSerializer(author, context={'request': request})
+            serializer = AuthorFollowRepresentSerializer(
+                author,
+                context={'request': request})
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
 
@@ -215,7 +216,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if model.objects.filter(user=user,
                                 recipe=recipe).exists():
-            raise ValidationError(f'Рецепт уже добавлен')
+            raise ValidationError('Рецепт уже добавлен')
 
         return model.objects.create(user=user, recipe=recipe).recipe
 
@@ -226,7 +227,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                           user=user,
                           recipe=recipe).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

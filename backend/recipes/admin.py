@@ -9,9 +9,9 @@ from recipes.models import (Ingredient, Favorite,
                             Recipe, ShoppingCart,
                             Tag)
 from recipes.admin_filters import (CookingTimeFilter,
-                                   HasRecipesFilter,
                                    HasFollowersFilter,
-                                   HasFollowingAuthorsFilter)
+                                   HasFollowingAuthorsFilter,
+                                   HasRecipesFilter)
 
 User = get_user_model()
 
@@ -34,7 +34,9 @@ class FoodgramUserAdmin(UserAdmin):
                     'followers_count')
     search_fields = ('username',
                      'email',)
-    list_filter = [HasRecipesFilter, HasFollowersFilter, HasFollowingAuthorsFilter]
+    list_filter = [HasRecipesFilter,
+                   HasFollowersFilter,
+                   HasFollowingAuthorsFilter]
     list_per_page = 25
 
     def last_first_name(self, user):
@@ -42,7 +44,10 @@ class FoodgramUserAdmin(UserAdmin):
 
     @mark_safe
     def user_avatar(self, user):
-        return '<img src="%s" width ="50" height="50"/>'%(user.avatar.url)
+        if user.avatar:
+            return '<img src="%s" width ="50" height="50"/>' % (user.avatar.url)
+        else:
+            return '-'
 
     def recipes_count(self, user):
         return user.recipes.count()
@@ -54,6 +59,7 @@ class FoodgramUserAdmin(UserAdmin):
         return user.followers.count()
 
     last_first_name.short_description = 'Фамилия Имя'
+    user_avatar.short_description = 'Аватар'
     recipes_count.short_description = 'Количество рецептов'
     following_authors_count.short_description = 'Количество подписок'
     followers_count.short_description = 'Количество подписчиков'
@@ -103,7 +109,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @mark_safe
     def recipe_image(self, recipe):
-        return '<img src="%s" width ="50" height="50"/>'%(recipe.image.url)
+        return '<img src="%s" width ="50" height="50"/>' % (recipe.image.url)
 
     @mark_safe
     @admin.display(description='Продукты')
@@ -113,7 +119,8 @@ class RecipeAdmin(admin.ModelAdmin):
         for recipeingredient in recipe.recipeingredients.all():
             ingredients_info.append(
                 f'{recipeingredient.ingredient.name.capitalize()} - '
-                f'{recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} '
+                f'''{recipe.recipeingredients.get(
+                    ingredient=recipeingredient.ingredient.id).amount} '''
                 f'{recipeingredient.ingredient.measurement_unit}<br>'
             )
 

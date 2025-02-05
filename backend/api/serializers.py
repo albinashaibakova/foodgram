@@ -3,17 +3,15 @@ from random import choice
 
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
-from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from api.serializer_fields import Base64ImageField
-from recipes.models import (Ingredient, RecipeIngredient,
-                            Favorite, Follow, Recipe,
+from recipes.models import (Ingredient, Favorite, Follow,
+                            RecipeIngredient, Recipe,
                             ShoppingCart, Tag)
-from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.validators import UniqueValidator
+
 
 User = get_user_model()
 
@@ -166,7 +164,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             'slug'
         )
 
-
     def get_is_favorited(self, recipe):
         user = self.context.get('request').user
         return Favorite.objects.filter(user=user,
@@ -175,7 +172,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def get_is_in_shopping_cart(self, recipe):
         user = self.context.get('request').user
         return ShoppingCart.objects.filter(user=user,
-                                       recipe=recipe.id).exists()
+                                           recipe=recipe.id).exists()
 
     def get_slug(self, instance=None):
         if self.context['request'].method == 'POST':
@@ -218,12 +215,12 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def add_ingredients_tags(recipe, ingredients, tags):
         recipe.tags.set(tags)
 
-        RecipeIngredient.objects.bulk_create(RecipeIngredient(
-            ingredient=recipe_ingredient['ingredient'],
-            recipe=recipe,
-            amount=recipe_ingredient['amount']
-        )
-        for recipe_ingredient in ingredients)
+        RecipeIngredient.objects.bulk_create(
+            RecipeIngredient(
+                ingredient=recipe_ingredient['ingredient'],
+                recipe=recipe,
+                amount=recipe_ingredient['amount'])
+            for recipe_ingredient in ingredients)
 
         return recipe
 
@@ -277,7 +274,9 @@ class AuthorFollowRepresentSerializer(serializers.ModelSerializer):
                   'is_subscribed', 'recipes', 'recipes_count', 'avatar')
 
     def get_recipes(self, author):
-        recipes_limit = int(self.context['request'].GET.get('recipes_limit', 10 ** 10))
+        recipes_limit = int(
+            self.context['request'].GET.get('recipes_limit', 10 ** 10)
+        )
         recipes = Recipe.objects.filter(author=author)
         return RecipeGetShortSerializer(
             recipes[:recipes_limit], many=True).data

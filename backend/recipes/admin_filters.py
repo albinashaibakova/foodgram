@@ -25,7 +25,6 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
             return less_than_average, more_than_average
 
-
     def lookups(self, request, model_admin):
 
         recipes = model_admin.get_queryset(request)
@@ -33,27 +32,35 @@ class CookingTimeFilter(admin.SimpleListFilter):
             less_avg, more_avg = self.get_average_cooking_time(recipes)
 
             return [
-                ('less_than_average', _(f'Меньше {less_avg} минут '
-                                        f'({recipes.filter(cooking_time__lte=less_avg).count()})')),
+                ('less_than_avg', _(
+                    f'Меньше {less_avg} минут '
+                    f'('
+                    f'{recipes.filter(cooking_time__lte=less_avg).count()}'
+                    f')')),
 
-                ('average', _(f'Меньше {more_avg} минут '
-                            f'({recipes.filter(cooking_time__lt=more_avg, cooking_time__gt=less_avg).count()})')),
-                ('more_than_average', _(f'Дольше {more_avg} минут '
-                                        f'({recipes.filter(cooking_time__gte=more_avg).count()})'))
-                                        ]
+                ('avg', _(
+                    f'Меньше {more_avg} минут '
+                    f'('
+                    f'{recipes.filter(cooking_time__lt=more_avg,cooking_time__gt=less_avg).count()}'
+                    f')')),
+
+                ('more_than_avg', _(
+                    f'Дольше {more_avg} минут '
+                    f'({recipes.filter(cooking_time__gte=more_avg).count()})'))
+            ]
 
     def queryset(self, request, recipes):
         if recipes:
             less_avg, more_avg = self.get_average_cooking_time(recipes)
 
-            if self.value() == 'less_than_average':
+            if self.value() == 'less_than_avg':
                 return recipes.filter(cooking_time__lte=less_avg)
 
-            if self.value() == 'average':
+            if self.value() == 'avg':
                 return recipes.filter(cooking_time__lt=more_avg,
                                     cooking_time__gt=less_avg)
 
-            if self.value() == 'more_than_average':
+            if self.value() == 'more_than_avg':
                 return recipes.filter(cooking_time__gte=more_avg)
 
 

@@ -1,4 +1,4 @@
-from recipes.management.commands.base_migrate_from_json import BaseImportCommand
+from recipes.management.commands.migrate_from_json import BaseImportCommand
 
 from recipes.models import Ingredient
 
