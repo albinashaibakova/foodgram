@@ -6,39 +6,51 @@ import numpy as np
 
 
 class CookingTimeFilter(admin.SimpleListFilter):
+
     title = _('Время приготовления')
     parameter_name = 'cooking_time'
+
+
 
 
     def get_average_cooking_time(self, recipes):
         recipes_count = recipes.all().count()
         average_cooking_time = recipes.all().aggregate(
             Sum('cooking_time')
-        )['cooking_time__sum']
+        )['cooking_time__sum'] / recipes_count
 
-        std_deviation = np.std(recipes.all()['cooking_time'])
+        cooking_time = [recipe.cooking_time for recipe in recipes.all()]
+        std_deviation = round(np.std(cooking_time))
 
-        return average_cooking_time, std_deviation
+        less_than_average = round(average_cooking_time - std_deviation)
+        more_than_average = round(average_cooking_time + std_deviation)
+
+        return less_than_average, more_than_average
 
 
     def lookups(self, request, model_admin):
 
+        recipes = model_admin.model.objects.all()
+        less_than_average, more_than_average = self.get_average_cooking_time(recipes)
+
         return [
-            ('less_than_average', _('Меньше 5 минут')),
-            ('average', _('Меньше 20 минут')),
+            ('less_than_average', _(f'Меньше {less_than_average} минут')),
+            ('average', _(f'Меньше {more_than_average} минут')),
             ('more_than_average', _('Долго'))
         ]
 
     def queryset(self, request, recipes):
-        print(self.get_average_cooking_time(recipes))
+        less_than_average, more_than_average = self.get_average_cooking_time(recipes)
+
         if self.value() == 'less_than_average':
-            return recipes.filter(cooking_time__lt=5)
+            return recipes.filter(cooking_time__lte=less_than_average)
 
         if self.value() == 'average':
-            return recipes.filter(cooking_time__lt=20, cooking_time__gte=5)
+            return recipes.filter(cooking_time__lt=more_than_average,
+                                  cooking_time__gt=less_than_average)
 
         if self.value() == 'more_than_average':
-            return recipes.filter(cooking_time__gte=20)
+            return recipes.filter(cooking_time__gte=more_than_average)
 
 
 class HasRecipesFilter(admin.SimpleListFilter):
