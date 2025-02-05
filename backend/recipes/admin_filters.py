@@ -1,6 +1,7 @@
 from django.contrib import admin
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.utils.translation import gettext_lazy as _
+import numpy as np
 
 
 
@@ -8,21 +9,35 @@ class CookingTimeFilter(admin.SimpleListFilter):
     title = _('Время приготовления')
     parameter_name = 'cooking_time'
 
+
+    def get_average_cooking_time(self, recipes):
+        recipes_count = recipes.all().count()
+        average_cooking_time = recipes.all().aggregate(
+            Sum('cooking_time')
+        )['cooking_time__sum']
+
+        std_deviation = np.std(recipes.all()['cooking_time'])
+
+        return average_cooking_time, std_deviation
+
+
     def lookups(self, request, model_admin):
+
         return [
-            ('lt5', _('Меньше 5 минут')),
-            ('lt20', _('Меньше 20 минут')),
-            ('gt20', _('Долго'))
+            ('less_than_average', _('Меньше 5 минут')),
+            ('average', _('Меньше 20 минут')),
+            ('more_than_average', _('Долго'))
         ]
 
     def queryset(self, request, recipes):
-        if self.value() == 'lt5':
+        print(self.get_average_cooking_time(recipes))
+        if self.value() == 'less_than_average':
             return recipes.filter(cooking_time__lt=5)
 
-        if self.value() == 'lt20':
+        if self.value() == 'average':
             return recipes.filter(cooking_time__lt=20, cooking_time__gte=5)
 
-        if self.value() == 'gt20':
+        if self.value() == 'more_than_average':
             return recipes.filter(cooking_time__gte=20)
 
 
