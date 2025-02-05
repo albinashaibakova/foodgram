@@ -108,27 +108,30 @@ class RecipeAdmin(admin.ModelAdmin):
         return recipe.favorites.count()
 
 
+    @mark_safe
     def recipe_image(self, recipe):
-        return mark_safe('<img src="%s" width ="50" height="50"/>'%(recipe.image))
+        return '<img src="%s" width ="50" height="50"/>'%(recipe.image)
 
 
+    @mark_safe
     @admin.display(description = 'Продукты')
     def display_ingredients(self, recipe):
         ingredients_info = []
 
         for recipeingredient in recipe.recipeingredients.all():
             ingredients_info.append(
-                f'<br>{recipeingredient.ingredient.name.capitalize()} -  {recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} {recipeingredient.ingredient.measurement_unit}'
+                f'<br>{recipeingredient.ingredient.name.capitalize()} - '
+                f'{recipe.recipeingredients.get(ingredient=recipeingredient.ingredient.id).amount} '
+                f'{recipeingredient.ingredient.measurement_unit}'
             )
-            print(ingredients_info)
-            return mark_safe('<br>'.join(ingredients_info))
 
-        return '-'
+        return '<br>'.join(ingredients_info)
 
 
+    @mark_safe
     @admin.display(description = 'Тэги', )
     def display_tags(self, recipe):
-        return mark_safe(', '.join(tag.name for tag in recipe.tags.all()))
+        return ', '.join(tag.name for tag in recipe.tags.all())
 
     is_favorite_count.short_description = 'Сколько раз в избранном'
     recipe_image.short_description = 'Картинка блюда'
