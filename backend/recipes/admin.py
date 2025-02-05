@@ -28,7 +28,7 @@ class FoodgramUserAdmin(UserAdmin):
                     'username',
                     'email',
                     'last_first_name',
-                    'avatar',
+                    'user_avatar',
                     'recipes_count',
                     'following_authors_count',
                     'followers_count')
@@ -41,8 +41,8 @@ class FoodgramUserAdmin(UserAdmin):
         return ' '.join([user.last_name, user.first_name])
 
     @mark_safe
-    def avatar(self, user):
-        return '<img src="%s" width ="50" height="50"/>'%(user.avatar)
+    def user_avatar(self, user):
+        return '<img src="%s" width ="50" height="50"/>'%(user.avatar.url)
 
     def recipes_count(self, user):
         return user.recipes.count()
@@ -103,7 +103,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @mark_safe
     def recipe_image(self, recipe):
-        return '<img src="%s" width ="50" height="50"/>'%(recipe.image)
+        return '<img src="%s" width ="50" height="50"/>'%(recipe.image.url)
 
     @mark_safe
     @admin.display(description='Продукты')
