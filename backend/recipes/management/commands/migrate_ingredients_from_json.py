@@ -9,7 +9,9 @@ class Command(BaseImportCommand):
     def import_data(self, data):
 
         try:
-            Ingredient.objects.bulk_create(Ingredient(**ingredient) for ingredient in data)
+            Ingredient.objects.bulk_create(
+                Ingredient(**ingredient) for ingredient in data
+            )
             print('Ингредиенты успешно загружены')
 
         except Exception as e:
