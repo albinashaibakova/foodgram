@@ -35,7 +35,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
-    'recipes.apps.RecipesConfig'
+    'recipes.apps.RecipesConfig',
+    'api.apps.ApiConfig'
 ]
 
 MIDDLEWARE = [
@@ -99,14 +100,14 @@ AUTH_USER_MODEL = 'recipes.FoodgramUser'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DEV_DATABASE = {
+DATABASE_SQLITE = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
-PROD_DATABASE = {
+DATABASE_POSTGRES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'foodgram_db'),
@@ -117,10 +118,12 @@ PROD_DATABASE = {
     }
 }
 
-if DEBUG:
-    DATABASES = DEV_DATABASE
-else:
-    DATABASES = PROD_DATABASE
+DATABASE_TYPE = os.getenv('DATABASE_TYPE', 'sqlite3')
+
+if DATABASE_TYPE == 'sqlite3':
+    DATABASES = DATABASE_SQLITE
+if DATABASE_TYPE == 'postgres':
+    DATABASES = DATABASE_POSTGRES
 
 
 # Password validation

@@ -35,8 +35,8 @@
     `python -Xutf8 manage.py migrate_ingredients_from_json data/ingredients.json`
     `python -Xutf8 manage.py migrate_tags_from_json data/tags.json`
 - Добавьте файл с секретами, пример файла приведен в .env.example
-В режиме отладки в файле с секретами установите значение флага DEGUG=True. В таком случае при запуске проекта
-будет принято подключение к БД Sqlite.
+В режиме отладки в файле с секретами установите значение флага DEGUG=True.
+- Установите значение переменной DATABASE_TYPE для подключения к соответствующей БД при запуске проекта.
 - Создайте суперпользователя и внесите соответствующие данные и разверните проект
     `python manage.py createsuperuser`
     `python manage.py runserver`
@@ -82,6 +82,7 @@
 
 Автор проекта:
 [Альбина Шайбакова](https://github.com/albinashaibakova)
+
 
 Техно-стек:
 python 3.9.8
