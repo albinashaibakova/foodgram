@@ -34,13 +34,12 @@
 - Наполните базу данных необходимыми данными (ингрeдиенты и тэги) с помощью команд
     `python -Xutf8 manage.py migrate_ingredients_from_json data/ingredients.json`
     `python -Xutf8 manage.py migrate_tags_from_json data/tags.json`
-В режиме отладки в файле settings.py требуется раскоментировать строки 103-108, 
-отвечающие за подключение к базе данных Sqlite и закоментировать строки, связанные с плдключением к БД Postgres
-Также указать значение флага DEBUG = True
+- Добавьте файл с секретами, пример файла приведен в .env.example
+В режиме отладки в файле с секретами установите значение флага DEGUG=True. В таком случае при запуске проекта
+будет принято подключение к БД Sqlite.
 - Создайте суперпользователя и внесите соответствующие данные и разверните проект
     `python manage.py createsuperuser`
     `python manage.py runserver`
-- Добавьте файл с секретами, пример файла приведен в .env.example
 - Для сборки проекта в Docker, воспользуйтесь файлом docker-compose.yml и выполните команду в корне проекта
     `docker compose up`
 
@@ -83,3 +82,13 @@
 
 Автор проекта:
 [Альбина Шайбакова](https://github.com/albinashaibakova)
+
+Техно-стек:
+python 3.9.8
+django 3.2.3
+drf 3.12.4
+gunicorn 20.1.0
+postgres 13.10
+nginx 1.22.1
+docker 20.10.16
+docker-compose 3.8
