@@ -22,9 +22,17 @@ class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
     min_num = 1
 
+class RecipesCountMixin(admin.ModelAdmin):
+    list_display = ('recipes_count', )
+
+    def recipes_count(self, obj):
+        return obj.recipes.count()
+
+    recipes_count.short_description = 'Количество рецептов'
+
 
 @admin.register(User)
-class FoodgramUserAdmin(UserAdmin):
+class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
     list_display = (
         'id',
         'username',
@@ -42,7 +50,7 @@ class FoodgramUserAdmin(UserAdmin):
     list_per_page = 25
 
     def last_first_name(self, user):
-        return ' '.join([user.last_name, user.first_name])
+        return f'{user.last_name} {user.first_name}'
 
     @mark_safe
     def user_avatar(self, user):
@@ -52,8 +60,6 @@ class FoodgramUserAdmin(UserAdmin):
         else:
             return '-'
 
-    def recipes_count(self, user):
-        return user.recipes.count()
 
     def following_authors_count(self, user):
         return user.authors.count()
@@ -63,18 +69,11 @@ class FoodgramUserAdmin(UserAdmin):
 
     last_first_name.short_description = 'Фамилия Имя'
     user_avatar.short_description = 'Аватар'
-    recipes_count.short_description = 'Количество рецептов'
     following_authors_count.short_description = 'Количество подписок'
     followers_count.short_description = 'Количество подписчиков'
 
 
-class RecipesCountMixin(admin.ModelAdmin):
-    list_display = ('recipes_count', )
 
-    def recipes_count(self, obj):
-        return obj.recipes.count()
-
-    recipes_count.short_description = 'Количество рецептов'
 
 
 @admin.register(Ingredient)
