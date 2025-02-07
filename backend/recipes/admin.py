@@ -3,15 +3,16 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 
-from recipes.models import (Ingredient, Favorite,
-                            Follow,
-                            RecipeIngredient,
-                            Recipe, ShoppingCart,
-                            Tag)
-from recipes.admin_filters import (CookingTimeFilter,
-                                   HasFollowersFilter,
-                                   HasFollowingAuthorsFilter,
-                                   HasRecipesFilter)
+from recipes.models import (
+    Ingredient, Favorite,
+    Follow,
+    RecipeIngredient,
+    Recipe, ShoppingCart, Tag)
+from recipes.admin_filters import (
+    CookingTimeFilter,
+    HasFollowersFilter,
+    HasFollowingAuthorsFilter,
+    HasRecipesFilter)
 
 User = get_user_model()
 
@@ -24,19 +25,20 @@ class RecipeIngredientInline(admin.TabularInline):
 
 @admin.register(User)
 class FoodgramUserAdmin(UserAdmin):
-    list_display = ('id',
-                    'username',
-                    'email',
-                    'last_first_name',
-                    'user_avatar',
-                    'recipes_count',
-                    'following_authors_count',
-                    'followers_count')
-    search_fields = ('username',
-                     'email',)
-    list_filter = [HasRecipesFilter,
-                   HasFollowersFilter,
-                   HasFollowingAuthorsFilter]
+    list_display = (
+        'id',
+        'username',
+        'email',
+        'last_first_name',
+        'user_avatar',
+        'following_authors_count',
+        'followers_count'
+    )
+    search_fields = ('username', 'email')
+    list_filter = [
+        HasRecipesFilter,
+        HasFollowersFilter,
+        HasFollowingAuthorsFilter]
     list_per_page = 25
 
     def last_first_name(self, user):
@@ -92,14 +94,15 @@ class TagAdmin(RecipesCountMixin, admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id',
-                    'name',
-                    'cooking_time',
-                    'author',
-                    'display_tags',
-                    'is_favorite_count',
-                    'display_ingredients',
-                    'recipe_image')
+    list_display = (
+        'id',
+        'name',
+        'cooking_time',
+        'author',
+        'display_tags',
+        'is_favorite_count',
+        'display_ingredients',
+        'recipe_image')
     search_fields = ('name', 'author', 'tags')
     list_filter = ('tags', 'author', CookingTimeFilter)
     list_per_page = 25
