@@ -156,9 +156,6 @@ class Recipe(models.Model):
         verbose_name='Фото блюда',
         upload_to='recipes/images',
         null=False)
-    slug = models.SlugField(
-        unique=True,
-        verbose_name='Короткая ссылка на рецепт')
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата и время создания рецепта'
@@ -198,7 +195,7 @@ class RecipeIngredient(models.Model):
         default_related_name = 'recipeingredients'
 
 
-class BaseModel(models.Model):
+class FavoriteShoppingCartBaseModel(models.Model):
     """Общая модель рецепта в избранном и рецепта в корзине"""
     recipe = models.ForeignKey(
         Recipe,
@@ -215,30 +212,26 @@ class BaseModel(models.Model):
         ordering = ('recipe__name', 'user__username')
         verbose_name = 'Рецепт в корзине/избранном'
         verbose_name_plural = 'Рецепты в корзине/избранном'
+        default_related_name = '%(app_label)s_%(class)s_related'
+        constraints = [UniqueConstraint(
+            fields=['recipe', 'user'],
+            name='unique_recipe_user')]
 
     def __str__(self):
         return self.recipe.name
 
 
-class Favorite(BaseModel):
+class Favorite(FavoriteShoppingCartBaseModel):
     """Модель для описания добавления рецепта в избранное"""
 
-    class Meta(BaseModel.Meta):
+    class Meta(FavoriteShoppingCartBaseModel.Meta):
         verbose_name = 'Рецепт в избранном'
         verbose_name_plural = 'Рецепты в избранном'
-        default_related_name = 'favorites'
-        constraints = [UniqueConstraint(
-            fields=['recipe', 'user'],
-            name='unique_favorite')]
 
 
-class ShoppingCart(BaseModel):
+class ShoppingCart(FavoriteShoppingCartBaseModel):
     """Модель для описания добавления рецепта в корзину"""
 
-    class Meta(BaseModel.Meta):
+    class Meta(FavoriteShoppingCartBaseModel.Meta):
         verbose_name = 'Рецепт в корзине'
         verbose_name_plural = 'Рецепты в корзине'
-        default_related_name = 'shopping_cart'
-        constraints = [UniqueConstraint(
-            fields=['recipe', 'user'],
-            name='unique_shopping_cart')]
