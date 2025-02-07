@@ -62,22 +62,25 @@ class FoodgramUser(AbstractUser):
 class Follow(models.Model):
     """Модель для описания подписки на пользователя"""
 
-    user = models.ForeignKey(FoodgramUser,
-                             on_delete=models.CASCADE,
-                             related_name='followers',
-                             verbose_name='Пользователь')
-    author = models.ForeignKey(FoodgramUser,
-                               on_delete=models.CASCADE,
-                               related_name='authors',
-                               verbose_name='Автор рецепта')
+    user = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        related_name='followers',
+        verbose_name='Пользователь')
+    author = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        related_name='authors',
+        verbose_name='Автор рецепта')
 
     class Meta:
         ordering = ('user__username', 'author__username',)
-        verbose_name = 'Подписчик автора рецепта'
-        verbose_name_plural = 'Подписчики автора рецепта'
+        verbose_name = 'Подписка пользователя'
+        verbose_name_plural = 'Подписки пользователя'
         constraints = [
-            models.UniqueConstraint(fields=['user', 'author'],
-                                    name='unique_follow')
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_follow')
         ]
 
     def __str__(self):
@@ -87,12 +90,14 @@ class Follow(models.Model):
 class Tag(models.Model):
     """Модель для описания тэгов"""
 
-    name = models.CharField(max_length=TAG_MAX_LENGTH,
-                            unique=True,
-                            verbose_name='Название тэга')
-    slug = models.SlugField(max_length=SLUG_MAX_LENGTH,
-                            unique=True,
-                            verbose_name='Слаг')
+    name = models.CharField(
+        max_length=TAG_MAX_LENGTH,
+        unique=True,
+        verbose_name='Название тэга')
+    slug = models.SlugField(
+        max_length=SLUG_MAX_LENGTH,
+        unique=True,
+        verbose_name='Слаг')
 
     class Meta:
         ordering = ('slug',)
@@ -106,10 +111,12 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """ Модель для описания продуктов"""
 
-    name = models.CharField(max_length=INGREDIENT_MAX_LENGTH,
-                            verbose_name='Название')
-    measurement_unit = models.CharField(max_length=MEASURE_MAX_LENGTH,
-                                        verbose_name='Единица измерения')
+    name = models.CharField(
+        max_length=INGREDIENT_MAX_LENGTH,
+        verbose_name='Название')
+    measurement_unit = models.CharField(
+        max_length=MEASURE_MAX_LENGTH,
+        verbose_name='Единица измерения')
 
     class Meta:
         ordering = ('name',)
@@ -127,25 +134,31 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     """Модель для описания рецепта"""
 
-    author = models.ForeignKey(FoodgramUser,
-                               on_delete=models.CASCADE,
-                               verbose_name='Автор рецепта')
-    name = models.CharField(max_length=NAME_MAX_LENGTH,
-                            verbose_name='Название рецепта')
-    ingredients = models.ManyToManyField(Ingredient,
-                                         verbose_name='Продукты')
-    tags = models.ManyToManyField(Tag,
-                                  verbose_name='Тэги')
+    author = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        verbose_name='Автор рецепта')
+    name = models.CharField(
+        max_length=NAME_MAX_LENGTH,
+        verbose_name='Название рецепта')
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        verbose_name='Продукты')
+    tags = models.ManyToManyField(
+        Tag,
+        verbose_name='Тэги')
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.SmallIntegerField(
         validators=[MinValueValidator(COOKING_TIME_MIN)],
         verbose_name='Время приготовления (в минутах)'
     )
-    image = models.ImageField(verbose_name='Фото блюда',
-                              upload_to='recipes/images',
-                              null=False)
-    slug = models.SlugField(unique=True,
-                            verbose_name='Короткая ссылка на рецепт')
+    image = models.ImageField(
+        verbose_name='Фото блюда',
+        upload_to='recipes/images',
+        null=False)
+    slug = models.SlugField(
+        unique=True,
+        verbose_name='Короткая ссылка на рецепт')
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата и время создания рецепта'
@@ -162,11 +175,14 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
-                               verbose_name='Рецепт')
-    ingredient = models.ForeignKey(Ingredient,
-                                   on_delete=models.CASCADE,
-                                   verbose_name='Продукт для рецепта')
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт')
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='Продукт для рецепта')
     amount = models.PositiveIntegerField(
         validators=[MinValueValidator(MIN_AMOUNT)],
         verbose_name='Мера'
@@ -184,13 +200,15 @@ class RecipeIngredient(models.Model):
 
 class BaseModel(models.Model):
     """Общая модель рецепта в избранном и рецепта в корзине"""
-    recipe = models.ForeignKey(Recipe,
-                               on_delete=models.CASCADE,
-                               verbose_name='Рецепт'
-                               )
-    user = models.ForeignKey(FoodgramUser,
-                             on_delete=models.CASCADE,
-                             verbose_name='Пользователь Foodgram')
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт'
+    )
+    user = models.ForeignKey(
+        FoodgramUser,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь Foodgram')
 
     class Meta:
         abstract = True
@@ -209,8 +227,9 @@ class Favorite(BaseModel):
         verbose_name = 'Рецепт в избранном'
         verbose_name_plural = 'Рецепты в избранном'
         default_related_name = 'favorites'
-        constraints = [UniqueConstraint(fields=['recipe', 'user'],
-                                        name='unique_favorite')]
+        constraints = [UniqueConstraint(
+            fields=['recipe', 'user'],
+            name='unique_favorite')]
 
 
 class ShoppingCart(BaseModel):
@@ -220,5 +239,6 @@ class ShoppingCart(BaseModel):
         verbose_name = 'Рецепт в корзине'
         verbose_name_plural = 'Рецепты в корзине'
         default_related_name = 'shopping_cart'
-        constraints = [UniqueConstraint(fields=['recipe', 'user'],
-                                        name='unique_shopping_cart')]
+        constraints = [UniqueConstraint(
+            fields=['recipe', 'user'],
+            name='unique_shopping_cart')]
