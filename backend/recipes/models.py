@@ -215,7 +215,7 @@ class FavoriteShoppingCartBaseModel(models.Model):
         default_related_name = '%(app_label)s_%(class)s_related'
         constraints = [UniqueConstraint(
             fields=['recipe', 'user'],
-            name='unique_recipe_user')]
+            name='unique_user_%(app_label)s_%(class)s')]
 
     def __str__(self):
         return self.recipe.name
