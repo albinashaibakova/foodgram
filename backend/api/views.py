@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -10,16 +12,17 @@ from rest_framework.exceptions import ValidationError
 
 from api.filtersets import IngredientFilter, RecipeFilterSet
 from api.permissions import IsOwnerOrReadOnly
-from api.serializers import (AuthorFollowRepresentSerializer,
-                             IngredientSerializer,
-                             RecipeAddUpdateSerializer,
-                             RecipeGetSerializer, RecipeGetShortSerializer,
-                             TagSerializer,
-                             UserRepresentSerializer,
-                             UserAvatarSerializer)
+from api.serializers import (
+    AuthorFollowRepresentSerializer,
+    IngredientSerializer, RecipeAddUpdateSerializer,
+    RecipeGetSerializer, RecipeGetShortSerializer,
+    TagSerializer, UserRepresentSerializer,
+    UserAvatarSerializer)
 from api.utils import render_shopping_cart
-from recipes.models import (Ingredient, Favorite, Follow,
-                            Recipe, ShoppingCart, Tag)
+from recipes.models import (
+    Ingredient, Favorite, Follow, Recipe, RecipeIngredient,
+    ShoppingCart, Tag
+)
 
 
 User = get_user_model()
@@ -202,8 +205,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=False)
     # Скачивание ингредиентов для рецептов, добавленных в корзину
     def download_shopping_cart(self, request, *args, **kwargs):
+
         if request.user.shopping_cart.exists():
-            return render_shopping_cart(self, request, *args, **kwargs)
+
+            ingredients = RecipeIngredient.objects.filter(
+                recipe__shopping_cart__user=request.user
+            ).values(
+                'recipe__name',
+                'ingredient__name',
+                'ingredient__measurement_unit'
+            ).annotate(quantity=Sum('amount')).order_by('amount')
+
+            recipes = ShoppingCart.objects.filter(user=request.user).recipes
+
+            shopping_list, filename = render_shopping_cart(self, request, recipes, ingredients)
+            return FileResponse(shopping_list,
+                                filename=filename,
+                                content_type='text/plain')
         raise ValidationError('Отсутствуют рецепты в корзине')
 
     def add_favorite_shopping_cart(self, user, recipe, model):

@@ -210,7 +210,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         instance.tags.set(tags)
         RecipeIngredient.objects.filter(recipe=instance).delete()
         self.add_ingredients_tags(instance, ingredients, tags)
-        instance.save()
         return super().update(instance, validated_data)
 
     def validate(self, attrs):
@@ -229,7 +228,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return RecipeGetSerializer(
             instance,
-            context={'request': self.context.get('request')}
+            context={'request': self.context}
         ).data
 
 

@@ -6,15 +6,9 @@ from django.http import FileResponse
 from recipes.models import RecipeIngredient
 
 
-def render_shopping_cart(self, request, *args, **kwargs):
+def render_shopping_cart(self, request, recipes, ingredients):
 
-    ingredients = RecipeIngredient.objects.filter(
-        recipe__shopping_cart__user=request.user
-    ).values(
-        'recipe__name',
-        'ingredient__name',
-        'ingredient__measurement_unit'
-    ).annotate(quantity=Sum('amount')).order_by('amount')
+
 
     today = date.today().strftime('%d-%m-%Y')
     shopping_list = f'Список покупок на: {today}\n\n'
@@ -27,6 +21,4 @@ def render_shopping_cart(self, request, *args, **kwargs):
         )
 
     filename = 'shopping_list.txt'
-    return FileResponse(shopping_list,
-                        filename=filename,
-                        content_type='text/plain')
+    return shopping_list, filename
