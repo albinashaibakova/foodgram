@@ -4,6 +4,20 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 
+class GetIsFavoritedShippingCartField(serializers.BooleanField):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def to_representation(self, recipe):
+        model = self.model
+        request = self.context.get('request')
+        return (request.user.is_authenticated
+                and model.objects.filter(
+                    user=request.user,
+                    recipe=recipe.id).exists())
+
+
 class Base64ImageField(serializers.ImageField):
 
     def to_internal_value(self, data):
