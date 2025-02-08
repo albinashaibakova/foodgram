@@ -25,7 +25,7 @@
 
 - Клонируйте репозиторий
     `git clone https://github.com/albinashaibakova/foodgram.git`
-- Перейдите в папку backend
+- Перейдите в директорию backend/
     `cd backend`
 - Установите необходимые зависимости из файла requirements.txt
     `pip install -r requirements.txt`

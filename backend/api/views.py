@@ -149,11 +149,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeAddUpdateSerializer
         return RecipeGetSerializer
 
-    # Получение короткой ссылки на рецепт
-    def get_short_link(self, *args, **kwargs):
-        long_url = self.request.build_absolute_uri().split('api')[0]
-        slug = get_object_or_404(Recipe, id=kwargs['pk']).slug
-        return Response({'short-link': f'{long_url}{slug}'})
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
