@@ -1,8 +1,6 @@
-import string
-from random import choice
-
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from djoser.conf import settings
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -22,7 +20,9 @@ class UserRepresentSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         model = User
-        fields = ('avatar', 'is_subscribed')
+        fields = tuple(User.REQUIRED_FIELDS) + (
+                settings.USER_ID_FIELD, settings.LOGIN_FIELD
+        ) + ('avatar', 'is_subscribed')
 
     def get_is_subscribed(self, author):
         user = self.context.get('request').user
