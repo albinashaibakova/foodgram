@@ -15,7 +15,7 @@ from api.serializers import (AuthorFollowRepresentSerializer,
                              RecipeAddUpdateSerializer,
                              RecipeGetSerializer, RecipeGetShortSerializer,
                              TagSerializer,
-                             UserListSerializer,
+                             UserRepresentSerializer,
                              UserAvatarSerializer)
 from api.utils import render_shopping_cart
 from recipes.models import (Ingredient, Favorite, Follow,
@@ -43,11 +43,11 @@ class UsersViewSet(UserViewSet):
         if request.method == 'GET':
             user = get_object_or_404(User,
                                      username=request.user.username)
-            serializer = UserListSerializer(user,
+            serializer = UserRepresentSerializer(user,
                                             context={'request': request})
             return Response(serializer.data,
                             status=status.HTTP_200_OK)
-        serializer = UserListSerializer(request.user,
+        serializer = UserRepresentSerializer(request.user,
                                         data=request.data,
                                         partial=True)
         serializer.is_valid(raise_exception=True)

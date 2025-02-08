@@ -6,5 +6,5 @@ from recipes.views import get_recipe_short_link
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('recipes/<int:pk>/get-link/', get_recipe_short_link()),
+    path('api/recipes/<int:pk>/get-link/', get_recipe_short_link),
 ]

@@ -3,7 +3,7 @@ from random import choice
 
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import UserSerializer
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
@@ -16,24 +16,13 @@ from recipes.models import (Ingredient, Favorite, Follow,
 User = get_user_model()
 
 
-class UserSignUpSerializer(UserCreateSerializer):
-    avatar = Base64ImageField(default='media/users/default-avatar.jpg',
-                              read_only=True)
-
-    class Meta:
-        model = User
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'password', 'avatar')
-
-
-class UserListSerializer(UserSerializer):
+class UserRepresentSerializer(UserSerializer):
 
     is_subscribed = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta(UserSerializer.Meta):
         model = User
-        fields = ('id', 'username', 'first_name',
-                  'last_name', 'email', 'avatar', 'is_subscribed')
+        fields = ('avatar', 'is_subscribed')
 
     def get_is_subscribed(self, author):
         user = self.context.get('request').user
@@ -111,7 +100,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     ingredients = IngredientGetSerializer(many=True,
                                           read_only=True,
                                           source='recipeingredients')
-    author = UserListSerializer()
+    author = UserRepresentSerializer()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -148,7 +137,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault())
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
-    slug = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -160,8 +148,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             'name',
             'image',
             'text',
-            'cooking_time',
-            'slug'
+            'cooking_time'
         )
 
     def get_is_favorited(self, recipe):
@@ -173,14 +160,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         return ShoppingCart.objects.filter(user=user,
                                            recipe=recipe.id).exists()
-
-    def get_slug(self, instance=None):
-        if self.context['request'].method == 'POST':
-            slug = ''.join(choice(string.ascii_letters)
-                           for x in range(10))
-
-            return slug
-        return instance.slug
 
     def validate_ingredients(self, ingredients):
         if not ingredients:
