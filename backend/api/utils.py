@@ -6,19 +6,45 @@ from django.http import FileResponse
 from recipes.models import RecipeIngredient
 
 
-def render_shopping_cart(self, request, recipes, ingredients):
-
-
+def render_shopping_cart(self, recipes, ingredients):
 
     today = date.today().strftime('%d-%m-%Y')
-    shopping_list = f'Список покупок на: {today}\n\n'
+    ingredients_to_render = []
+    recipes_to_render = []
+    print(recipes)
     for index, ingredient in enumerate(ingredients, start=1):
-        shopping_list += (
-            f'{index}) {str(ingredient["ingredient__name"]).capitalize()} - '
-            f'{ingredient["quantity"]} '
-            f'{str(ingredient["ingredient__measurement_unit"])[:2]}. '
-            f'Рецепт - {ingredient["recipe__name"]}\n'
+        ingredients_to_render.append(
+                '{index}) {ingredient__name} - '
+                '{quantity} ({measurement_unit})'.format(
+                    index=index,
+                    ingredient__name=ingredient['ingredient__name'].capitalize(),
+                    quantity=ingredient['quantity'],
+                    measurement_unit=ingredient['ingredient__measurement_unit']
+                )
+            )
+    ingredients_to_render = '\n'.join(ingredients_to_render)
+
+    for index, recipe in enumerate(recipes, start=1):
+        recipes_to_render.append(
+                '{index}) Рецепт: {recipe_name}. Автор: {recipe_author}'.format(
+                    index=index,
+                    recipe_name=recipe[0].capitalize(),
+                    recipe_author=recipe[1]
+                )
         )
+
+    recipes_to_render = '\n'.join(recipes_to_render)
+
+    shopping_list = '\n'.join(
+        [
+            'Список покупок на: {today}'.format(today=today),
+            'Ингредиенты',
+            ingredients_to_render,
+            'Рецепты',
+            recipes_to_render
+
+        ]
+    )
 
     filename = 'shopping_list.txt'
     return shopping_list, filename

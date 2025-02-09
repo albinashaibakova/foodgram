@@ -206,23 +206,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
     # Скачивание ингредиентов для рецептов, добавленных в корзину
     def download_shopping_cart(self, request, *args, **kwargs):
 
-        if request.user.shopping_cart.exists():
+        recipes = request.user.recipes_shoppingcart_related.values_list(
+            'recipe__name',
+            'recipe__author__username'
+        )
 
-            ingredients = RecipeIngredient.objects.filter(
-                recipe__shopping_cart__user=request.user
+        ingredients = RecipeIngredient.objects.filter(
+            recipe__recipes_shoppingcart__user=request.user,
             ).values(
                 'recipe__name',
                 'ingredient__name',
                 'ingredient__measurement_unit'
             ).annotate(quantity=Sum('amount')).order_by('amount')
 
-            recipes = ShoppingCart.objects.filter(user=request.user).recipes
-
-            shopping_list, filename = render_shopping_cart(self, request, recipes, ingredients)
-            return FileResponse(shopping_list,
-                                filename=filename,
-                                content_type='text/plain')
-        raise ValidationError('Отсутствуют рецепты в корзине')
+        shopping_list, filename = render_shopping_cart(self, recipes, ingredients)
+        return FileResponse(shopping_list,
+                            filename=filename,
+                            content_type='text/plain')
 
     def add_favorite_shopping_cart(self, user, recipe, model):
         """Функция для добавления рецепта в избранное или в корзину"""

@@ -200,6 +200,7 @@ class FavoriteShoppingCartBaseModel(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='%(app_label)s_%(class)s',
         verbose_name='Рецепт'
     )
     user = models.ForeignKey(
