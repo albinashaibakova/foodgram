@@ -1,3 +1,4 @@
+import numpy
 from django.contrib import admin
 from django.db.models import Count, Avg
 import numpy as np
@@ -13,13 +14,15 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
         if recipes:
             average_cooking_time = recipes.all().aggregate(Avg('cooking_time'))['cooking_time__avg']
-            print(average_cooking_time)
 
             cooking_time = [recipe.cooking_time for recipe in recipes.all()]
-            std_deviation = round(np.std(cooking_time))
 
-            less_than_average = round(average_cooking_time - std_deviation)
-            more_than_average = round(average_cooking_time + std_deviation)
+            histogram = numpy.histogram(cooking_time, bins=3)
+            print(histogram)
+            #std_deviation = round(np.std(cooking_time))
+
+            #less_than_average = round(average_cooking_time - std_deviation)
+           # more_than_average = round(average_cooking_time + std_deviation)
 
             return less_than_average, more_than_average
 
