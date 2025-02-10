@@ -9,11 +9,13 @@ class GetIsFavoritedShippingCartField(serializers.BooleanField):
         super().__init__()
         self.model = model
 
+    def get_attribute(self, instance):
+       return instance
+
     def to_representation(self, recipe):
-        model = self.model
         request = self.context.get('request')
         return (request.user.is_authenticated
-                and model.objects.filter(
+                and self.model.objects.filter(
                     user=request.user,
                     recipe=recipe.id).exists())
 

@@ -124,7 +124,6 @@ class RecipeAdmin(admin.ModelAdmin):
 
         return '<br>'.join(tag.name for tag in recipe.tags.all())
 
-
     fieldsets = (
         (
             None,
@@ -158,9 +157,11 @@ class Favorite(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     list_per_page = 25
 
+
 class ShoppingCart(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     list_per_page = 25
+
 
 @admin.register(Follow)
 class Follow(admin.ModelAdmin):
