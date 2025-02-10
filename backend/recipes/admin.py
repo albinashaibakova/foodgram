@@ -101,7 +101,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Сколько раз в избранном')
     def is_favorite_count(self, recipe):
-        return recipe.favorites.count()
+        return recipe.recipes_favorite_related.count()
 
     @admin.display(description='Изображение блюда')
     @mark_safe
@@ -111,17 +111,12 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Продукты')
     @mark_safe
     def display_ingredients(self, recipe):
-        ingredients_info = []
 
-        for recipeingredient in recipe.recipeingredients.all():
-            ingredients_info.append(
-                f'{recipeingredient.ingredient.name.capitalize()} - '
-                f'''{recipe.recipeingredients.get(
-                    ingredient=recipeingredient.ingredient.id).amount} '''
-                f'{recipeingredient.ingredient.measurement_unit}'
-            )
-
-        return '<br>'.join(ingredients_info)
+        return '<br>'.join(['{ingredient_name} - {ingredient_amount} {ingredient_measurement_unit}'.format(
+                ingredient_name=recipeingredient.ingredient.name.capitalize(),
+                ingredient_amount=recipeingredient.amount,
+                ingredient_measurement_unit=recipeingredient.ingredient.measurement_unit
+            ) for recipeingredient in recipe.recipeingredients.all()])
 
     @mark_safe
     @admin.display(description='Тэги', )
