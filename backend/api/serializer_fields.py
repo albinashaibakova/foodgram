@@ -13,10 +13,10 @@ class GetIsFavoritedShippingCartField(serializers.BooleanField):
        return instance
 
     def to_representation(self, recipe):
-        request = self.context.get('request')
-        return (request.user.is_authenticated
+
+        return (self.context.get('request').user.is_authenticated
                 and self.model.objects.filter(
-                    user=request.user,
+                    user=self.context.get('request').user,
                     recipe=recipe.id).exists())
 
 

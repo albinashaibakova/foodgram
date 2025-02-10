@@ -30,6 +30,7 @@ class UserRepresentSerializer(UserSerializer):
         ) + ('avatar', 'is_subscribed')
 
     def get_is_subscribed(self, author):
+
         user = self.context.get('request').user
         return (user.is_authenticated
                 and author != user
@@ -130,6 +131,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault())
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
@@ -144,15 +146,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
-    def get_is_favorited(self, recipe):
-        user = self.context.get('request').user
-        return Favorite.objects.filter(user=user,
-                                       recipe=recipe.id).exists()
-
-    def get_is_in_shopping_cart(self, recipe):
-        user = self.context.get('request').user
-        return ShoppingCart.objects.filter(user=user,
-                                           recipe=recipe.id).exists()
 
     def validate_ingredients(self, ingredients):
         if not ingredients:
@@ -228,7 +221,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return RecipeGetSerializer(
             instance,
-            context={'request': self.context}
+            context={'request': self.context.get('request')}
         ).data
 
 
