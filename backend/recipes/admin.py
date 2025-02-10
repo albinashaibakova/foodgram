@@ -22,13 +22,11 @@ class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
     min_num = 1
 
-class RecipesCountMixin(admin.ModelAdmin):
-    list_display = ('recipes_count', )
+class RecipesCountMixin:
 
+    @admin.display(description='Рецепты')
     def recipes_count(self, obj):
         return obj.recipes.count()
-
-    recipes_count.short_description = 'Количество рецептов'
 
 
 @admin.register(User)
@@ -39,6 +37,7 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
         'email',
         'last_first_name',
         'user_avatar',
+        'recipes_count',
         'following_authors_count',
         'followers_count'
     )
@@ -49,31 +48,24 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
         HasFollowingAuthorsFilter]
     list_per_page = 25
 
+    @admin.display(description='Фамилия Имя')
     def last_first_name(self, user):
         return f'{user.last_name} {user.first_name}'
 
+    @admin.display(description='Аватар')
     @mark_safe
     def user_avatar(self, user):
         if user.avatar:
-            return ('<img src="%s" width ="50" height="50"/>'
-                    % (user.avatar.url))
-        else:
-            return '-'
+            return '<img src="%s" width ="50" height="50"/>{avatar}'.format(avatar=user.avatar.url)
+        return '-'
 
-
+    @admin.display(description='Количество подписок')
     def following_authors_count(self, user):
         return user.authors.count()
 
+    @admin.display(description='Количество подписчиков')
     def followers_count(self, user):
         return user.followers.count()
-
-    last_first_name.short_description = 'Фамилия Имя'
-    user_avatar.short_description = 'Аватар'
-    following_authors_count.short_description = 'Количество подписок'
-    followers_count.short_description = 'Количество подписчиков'
-
-
-
 
 
 @admin.register(Ingredient)
@@ -107,40 +99,31 @@ class RecipeAdmin(admin.ModelAdmin):
     list_per_page = 25
     inlines = [RecipeIngredientInline]
 
+    @admin.display(description='Сколько раз в избранном')
     def is_favorite_count(self, recipe):
-        return recipe.favorites.count()
+        return recipe.recipes_favorite_related.count()
 
+    @admin.display(description='Изображение блюда')
     @mark_safe
     def recipe_image(self, recipe):
-        return '<img src="%s" width ="50" height="50"/>' % (recipe.image.url)
+        return '<img src="%s" width ="50" height="50"/> {image}'.format(image=recipe.image.url)
 
-    @mark_safe
     @admin.display(description='Продукты')
+    @mark_safe
     def display_ingredients(self, recipe):
-        ingredients_info = []
 
-        for recipeingredient in recipe.recipeingredients.all():
-            ingredients_info.append(
-                f'{recipeingredient.ingredient.name.capitalize()} - '
-                f'''{recipe.recipeingredients.get(
-                    ingredient=recipeingredient.ingredient.id).amount} '''
-                f'{recipeingredient.ingredient.measurement_unit}<br>'
-            )
-
-        return ''.join(ingredients_info)
+        return '<br>'.join(['{ingredient_name} - {ingredient_amount} {ingredient_measurement_unit}'.format(
+                ingredient_name=recipeingredient.ingredient.name.capitalize(),
+                ingredient_amount=recipeingredient.amount,
+                ingredient_measurement_unit=recipeingredient.ingredient.measurement_unit
+            ) for recipeingredient in recipe.recipeingredients.all()])
 
     @mark_safe
     @admin.display(description='Тэги', )
     def display_tags(self, recipe):
-        tags_info = []
-        for tag in recipe.tags.all():
-            tags_info.append(
-                f'{tag.name}<br>'
-            )
-        return ''.join(tags_info)
 
-    is_favorite_count.short_description = 'Сколько раз в избранном'
-    recipe_image.short_description = 'Картинка блюда'
+        return '<br>'.join(tag.name for tag in recipe.tags.all())
+
 
     fieldsets = (
         (
@@ -170,17 +153,14 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
     list_per_page = 25
 
 
-@admin.register(Favorite)
+@admin.register(Favorite, ShoppingCart)
 class Favorite(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     list_per_page = 25
 
-
-@admin.register(ShoppingCart)
 class ShoppingCart(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     list_per_page = 25
-
 
 @admin.register(Follow)
 class Follow(admin.ModelAdmin):
