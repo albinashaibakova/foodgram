@@ -25,9 +25,7 @@ class UserRepresentSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         model = User
-        fields = tuple(User.REQUIRED_FIELDS) + (
-                settings.USER_ID_FIELD, settings.LOGIN_FIELD
-        ) + ('avatar', 'is_subscribed')
+        fields = tuple(UserSerializer.Meta.fields) + ('avatar', 'is_subscribed')
 
     def get_is_subscribed(self, author):
 
@@ -193,6 +191,8 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('recipeingredients')
         tags = validated_data.pop('tags')
+        serializer = RecipeGetShortSerializer(data=validated_data)
+        serializer.is_valid(raise_exception=True)
         recipe = Recipe.objects.create(**validated_data)
         self.add_ingredients_tags(recipe, ingredients, tags)
         return recipe
@@ -203,7 +203,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         recipe.tags.clear()
         recipe.tags.set(tags)
         recipe.recipeingredients.all().delete()
-    #    RecipeIngredient.objects.filter(recipe=instance).delete()
         self.add_ingredients_tags(recipe, ingredients, tags)
         return super().update(recipe, validated_data)
 
@@ -227,29 +226,19 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         ).data
 
 
-class AuthorFollowRepresentSerializer(serializers.ModelSerializer):
+class AuthorFollowRepresentSerializer(UserRepresentSerializer):
     """Сериализатор для отображения информации о подписках пользователя"""
 
-    is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.ReadOnlyField(source='recipes.count')
 
-    class Meta:
+    class Meta(UserRepresentSerializer.Meta):
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email',
-                  'is_subscribed', 'recipes', 'recipes_count', 'avatar')
+        fields = tuple(UserRepresentSerializer.Meta.fields) + ('recipes', 'recipes_count',)
 
     def get_recipes(self, author):
-        recipes_limit = int(
-            self.context['request'].GET.get('recipes_limit', 10 ** 10)
-        )
-        recipes = Recipe.objects.filter(author=author)
-        return RecipeGetShortSerializer(
-            recipes[:recipes_limit], many=True).data
 
-    def get_is_subscribed(self, author):
-        user = self.context.get('request').user
-        return (user.is_authenticated
-                and author != user
-                and Follow.objects.filter(user=user,
-                                          author=author).exists())
+        return RecipeGetShortSerializer(
+            Recipe.objects.filter(author=author)[:int(
+                self.context['request'].GET.get('recipes_limit', 10 ** 10)
+            )], many=True).data
