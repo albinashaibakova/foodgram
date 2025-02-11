@@ -129,6 +129,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     )
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
+    name = serializers.CharField()
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     cooking_time = serializers.IntegerField()
@@ -196,14 +197,15 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         self.add_ingredients_tags(recipe, ingredients, tags)
         return recipe
 
-    def update(self, instance, validated_data):
+    def update(self, recipe, validated_data):
         ingredients = validated_data.pop('recipeingredients')
         tags = validated_data.pop('tags')
-        instance.tags.clear()
-        instance.tags.set(tags)
-        RecipeIngredient.objects.filter(recipe=instance).delete()
-        self.add_ingredients_tags(instance, ingredients, tags)
-        return super().update(instance, validated_data)
+        recipe.tags.clear()
+        recipe.tags.set(tags)
+        recipe.recipeingredients.all().delete()
+    #    RecipeIngredient.objects.filter(recipe=instance).delete()
+        self.add_ingredients_tags(recipe, ingredients, tags)
+        return super().update(recipe, validated_data)
 
     def validate(self, attrs):
         if not attrs.get('image'):
