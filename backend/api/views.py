@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import FileResponse
@@ -65,26 +67,22 @@ class UsersViewSet(UserViewSet):
     # Смена аватарки
     def set_avatar(self, request):
         if request.method == 'PUT':
-            if 'avatar' in request.data:
-                print(request.data)
-                serializer = UserAvatarSerializer(
-                    request.user,
-                    data=request.data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_200_OK)
-            else:
+
+            if not 'avatar' in request.data:
                 raise ValidationError('Загрузите аватар!')
 
-        if request.method == 'DELETE':
-            data = request.data
-            if 'avatar' not in data:
-                data = {'avatar': None}
-            serializer = UserAvatarSerializer(request.user,
-                                              data=data)
+            serializer = UserAvatarSerializer(
+                request.user,
+                data=request.data)
             serializer.is_valid(raise_exception=True)
-            serializer.save(avatar=None)
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
+
+
+        if request.method == 'DELETE':
+            os.remove(request.data['avatar'])
+            request.user.avatar = None
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=('get',),
@@ -114,7 +112,7 @@ class UsersViewSet(UserViewSet):
     # Подписка на пользователя
     def subscribe(self, request, *args, **kwargs):
         user = request.user
-        author = get_object_or_404(User, id=kwargs.pop('id'))
+        author = get_object_or_404(User, id=kwargs['id'])
 
         if request.method == 'POST':
             if Follow.objects.filter(user=user,
@@ -184,10 +182,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
 
-            recipe = self.add_favorite_shopping_cart(
-                user=request.user,
-                recipe=get_object_or_404(Recipe, id=kwargs['pk']),
-                model=ShoppingCart)
+            recipe = self.add_favorite_shopping_cart(model=ShoppingCart, **request.data)
 
             return Response(RecipeGetShortSerializer(recipe).data,
                             status=status.HTTP_201_CREATED)

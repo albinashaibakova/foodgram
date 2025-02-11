@@ -7,6 +7,7 @@ from recipes.models import RecipeIngredient
 
 
 def render_shopping_cart(self, recipes, ingredients):
+    """Рендер списка продуктов для рецептов"""
 
     today = date.today().strftime('%d-%m-%Y')
 
