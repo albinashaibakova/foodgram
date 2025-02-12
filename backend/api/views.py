@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import (permissions, pagination,
-                            status, viewsets)
+                            status, viewsets, request)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -46,20 +46,7 @@ class UsersViewSet(UserViewSet):
             detail=False)
     # Профиль пользователя
     def get_user_profile(self, request):
-        if request.method == 'GET':
-            user = get_object_or_404(User,
-                                     username=request.user.username)
-            serializer = UserRepresentSerializer(user,
-                                            context={'request': request})
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-        serializer = UserRepresentSerializer(request.user,
-                                        data=request.data,
-                                        partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=request.user.role)
-        return Response(serializer.data,
-                        status=status.HTTP_200_OK)
+        self.me(request)
 
     @action(methods=('put', 'delete'),
             url_path='me/avatar',
@@ -81,7 +68,9 @@ class UsersViewSet(UserViewSet):
                             status=status.HTTP_200_OK)
 
 
-     #   os.remove(User.objects.get(id=request.user.id).avatar)
+        os.remove(request.build_absolute_uri(request.user.avatar))
+
+
         request.user.avatar = None
         return Response(status=status.HTTP_204_NO_CONTENT)
 
