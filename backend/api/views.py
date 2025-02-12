@@ -1,6 +1,7 @@
 import os
 
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
@@ -117,8 +118,7 @@ class UsersViewSet(UserViewSet):
             if author == user:
                 raise ValidationError('Вы не можете подписаться на себя!')
 
-            if not Follow.objects.filter(user=user,
-                                     author=author).exists():
+            try:
                 Follow.objects.create(user=user, author=author)
                 serializer = AuthorFollowRepresentSerializer(
                     author,
@@ -126,10 +126,10 @@ class UsersViewSet(UserViewSet):
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
 
-
-            raise ValidationError(
-                f'Вы уже подписаны на пользователя {author.username}'
-            )
+            except IntegrityError:
+                return Response({
+                    'error_message': f'Вы уже подписаны на пользователя {author.username}'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         get_object_or_404(Follow, user=user, author=author).delete()
 
@@ -205,15 +205,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         user = request.user
         recipe = get_object_or_404(Recipe, id=request.parser_context['kwargs']['pk'])
-        if model.objects.filter(
-                user=user,
-                recipe=recipe).exists():
-            raise ValidationError('Рецепт уже добавлен')
 
-        model.objects.create(user=user, recipe=recipe)
+        try:
+            return Response(
+                RecipeGetShortSerializer(
+                    model.objects.create(user=user, recipe=recipe).recipe
+                ).data,
+                status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            return Response(
+                {'error_message': 'Рецепт уже добавлен'},
+                status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        return Response(RecipeGetShortSerializer(recipe).data,
-                        status=status.HTTP_201_CREATED)
 
     def delete_favorite_shopping_cart(self, request, model):
         """Функция для удаления рецепта из избранного или в корзины"""
