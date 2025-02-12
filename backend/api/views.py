@@ -80,10 +80,9 @@ class UsersViewSet(UserViewSet):
                             status=status.HTTP_200_OK)
 
 
-        if request.method == 'DELETE':
-            os.remove(request.data['avatar'])
-            request.user.avatar = None
-            return Response(status=status.HTTP_204_NO_CONTENT)
+     #   os.remove(User.objects.get(id=request.user.id).avatar)
+        request.user.avatar = None
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=('get',),
             url_path='subscriptions',
@@ -115,25 +114,26 @@ class UsersViewSet(UserViewSet):
         author = get_object_or_404(User, id=kwargs['id'])
 
         if request.method == 'POST':
-            if Follow.objects.filter(user=user,
-                                     author=author).exists():
-                raise ValidationError(
-                    f'Вы уже подписаны на пользователя {author.username}'
-                )
-
             if author == user:
                 raise ValidationError('Вы не можете подписаться на себя!')
-            Follow.objects.create(user=user, author=author)
 
-            serializer = AuthorFollowRepresentSerializer(
-                author,
-                context={'request': request})
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
+            if not Follow.objects.filter(user=user,
+                                     author=author).exists():
+                Follow.objects.create(user=user, author=author)
+                serializer = AuthorFollowRepresentSerializer(
+                    author,
+                    context={'request': request})
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
-            get_object_or_404(Follow, user=user, author=author).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+
+            raise ValidationError(
+                f'Вы уже подписаны на пользователя {author.username}'
+            )
+
+        get_object_or_404(Follow, user=user, author=author).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -159,19 +159,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, *args, **kwargs):
 
         if request.method == 'POST':
-            recipe = self.add_favorite_shopping_cart(
-                user=request.user,
-                recipe=get_object_or_404(Recipe, id=kwargs['pk']),
-                model=Favorite)
+            return self.add_favorite_shopping_cart(request, model=Favorite)
 
-            return Response(RecipeGetShortSerializer(recipe).data,
-                            status=status.HTTP_201_CREATED)
-
-        if request.method == 'DELETE':
-            return self.delete_favorite_shopping_cart(
-                user=request.user,
-                recipe=get_object_or_404(Recipe, id=kwargs['pk']),
-                model=Favorite)
+        return self.delete_favorite_shopping_cart(request, model=Favorite)
 
     @action(methods=('post', 'delete'),
             url_path='shopping_cart',
@@ -181,18 +171,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, *args, **kwargs):
 
         if request.method == 'POST':
+            return self.add_favorite_shopping_cart(request, model=ShoppingCart)
 
-            recipe = self.add_favorite_shopping_cart(model=ShoppingCart, **request.data)
-
-            return Response(RecipeGetShortSerializer(recipe).data,
-                            status=status.HTTP_201_CREATED)
-
-        if request.method == 'DELETE':
-
-            return self.delete_favorite_shopping_cart(
-                user=request.user,
-                recipe=get_object_or_404(Recipe, id=kwargs['pk']),
-                model=ShoppingCart)
+        return self.delete_favorite_shopping_cart(request, model=ShoppingCart)
 
     @action(methods=('get',),
             url_path='download_shopping_cart',
@@ -219,17 +200,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
                             filename=filename,
                             content_type='text/plain')
 
-    def add_favorite_shopping_cart(self, user, recipe, model):
+    def add_favorite_shopping_cart(self, request, model):
         """Функция для добавления рецепта в избранное или в корзину"""
 
-        if model.objects.filter(user=user,
-                                recipe=recipe).exists():
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=request.parser_context['kwargs']['pk'])
+        if model.objects.filter(
+                user=user,
+                recipe=recipe).exists():
             raise ValidationError('Рецепт уже добавлен')
 
-        return model.objects.create(user=user, recipe=recipe).recipe
+        model.objects.create(user=user, recipe=recipe)
 
-    def delete_favorite_shopping_cart(self, user, recipe, model):
+        return Response(RecipeGetShortSerializer(recipe).data,
+                        status=status.HTTP_201_CREATED)
+
+    def delete_favorite_shopping_cart(self, request, model):
         """Функция для удаления рецепта из избранного или в корзины"""
+
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=request.parser_context['kwargs']['pk'])
 
         get_object_or_404(model,
                           user=user,
