@@ -6,25 +6,27 @@ import numpy as np
 
 class CookingTimeFilter(admin.SimpleListFilter):
 
-    title = ('Время приготовления')
+    title = 'Время приготовления'
     parameter_name = 'cooking_time'
 
     def get_average_cooking_time(self, recipes):
         recipes_count = recipes.all().count()
 
-        if recipes:
-            average_cooking_time = recipes.all().aggregate(Avg('cooking_time'))['cooking_time__avg']
+        if not recipes:
+            return ''
 
-            cooking_time = [recipe.cooking_time for recipe in recipes.all()]
+        average_cooking_time = recipes.all().aggregate(Avg('cooking_time'))['cooking_time__avg']
 
-            histogram = numpy.histogram(cooking_time, bins=3)
-            print(histogram)
-            #std_deviation = round(np.std(cooking_time))
+        cooking_time = [recipe.cooking_time for recipe in recipes.all()]
 
-            #less_than_average = round(average_cooking_time - std_deviation)
-           # more_than_average = round(average_cooking_time + std_deviation)
+        histogram = np.histogram(cooking_time, bins=2)
+        print(histogram)
+        #std_deviation = round(np.std(cooking_time))
 
-            return less_than_average, more_than_average
+        #less_than_average = round(average_cooking_time - std_deviation)
+        # more_than_average = round(average_cooking_time + std_deviation)
+
+        return less_than_average, more_than_average
 
     def lookups(self, request, model_admin):
 
