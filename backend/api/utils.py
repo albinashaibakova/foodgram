@@ -2,8 +2,19 @@ from datetime import date
 
 from django.db.models import Sum
 from django.http import FileResponse
+from django.utils.text import slugify
 
 from recipes.models import RecipeIngredient
+
+
+
+def generate_slug(string):
+    string = string.translate(
+        str.maketrans(
+            "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
+            "abvgdeejzijklmnoprstufhzcss_y_euaABVGDEEJZIJKLMNOPRSTUFHZCSS_Y_EUA"
+        ))
+    return slugify(string)
 
 
 def render_shopping_cart(self, recipes, ingredients):

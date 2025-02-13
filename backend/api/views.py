@@ -1,7 +1,4 @@
 import os
-from sys import maxsize
-
-from hashids import Hashids
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
@@ -9,11 +6,10 @@ from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils.text import slugify
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import (permissions, pagination,
-                            status, viewsets, request)
+                            status, viewsets)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -26,7 +22,7 @@ from api.serializers import (
     RecipeGetSerializer, RecipeGetShortSerializer,
     TagSerializer, UserRepresentSerializer,
     UserAvatarSerializer)
-from api.utils import render_shopping_cart
+from api.utils import generate_slug, render_shopping_cart
 from recipes.models import (
     Ingredient, Favorite, Follow, Recipe, RecipeIngredient,
     ShoppingCart, Tag
@@ -145,20 +141,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeGetSerializer
 
 
+
     @action(methods=('get',),
             url_path='get-link',
             detail=True)
-
     def get_recipe_short_link(self, request, pk=None):
+        if not Recipe.objects.filter(id=pk).exists():
+            raise ValidationError('Рецепт не найден')
 
-        recipe = get_object_or_404(Recipe, pk=pk)
-        my_string = recipe.name.translate(
-            str.maketrans(
-                "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
-                "abvgdeejzijklmnoprstufhzcss_y_euaABVGDEEJZIJKLMNOPRSTUFHZCSS_Y_EUA"
-            ))
-        slug = slugify(my_string) + str(recipe.id)
-
+        recipe = Recipe.objects.get(id=pk)
+        slug = generate_slug(string=recipe.name) + str(recipe.id)
         short_url = reverse('short_link', kwargs={'slug': slug})
 
         return redirect(short_url)
