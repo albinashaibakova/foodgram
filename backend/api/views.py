@@ -1,10 +1,15 @@
 import os
+from sys import maxsize
+
+from hashids import Hashids
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import FileResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+from django.utils.text import slugify
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import (permissions, pagination,
@@ -138,6 +143,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method not in permissions.SAFE_METHODS:
             return RecipeAddUpdateSerializer
         return RecipeGetSerializer
+
+
+    @action(methods=('get',),
+            url_path='get-link',
+            detail=True)
+
+    def get_recipe_short_link(self, request, pk=None):
+
+        recipe = get_object_or_404(Recipe, pk=pk)
+        my_string = recipe.name.translate(
+            str.maketrans(
+                "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
+                "abvgdeejzijklmnoprstufhzcss_y_euaABVGDEEJZIJKLMNOPRSTUFHZCSS_Y_EUA"
+            ))
+        slug = slugify(my_string) + str(recipe.id)
+
+        short_url = reverse('short_link', kwargs={'slug': slug})
+
+        return redirect(short_url)
 
 
     @action(methods=('post', 'delete'),
