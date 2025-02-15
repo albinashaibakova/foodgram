@@ -11,22 +11,20 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
     def get_average_cooking_time(self, recipes):
         recipes_count = recipes.all().count()
+        cooking_time = [recipe.cooking_time for recipe in recipes.all()]
 
-        if not recipes:
-            return ''
+        if min(cooking_time) == max(cooking_time):
+            return recipes
 
         average_cooking_time = recipes.all().aggregate(Avg('cooking_time'))['cooking_time__avg']
 
         cooking_time = [recipe.cooking_time for recipe in recipes.all()]
 
-        histogram = np.histogram(cooking_time, bins=2)
-        print(histogram)
-        #std_deviation = round(np.std(cooking_time))
+        bins = [min(cooking_time),  round(average_cooking_time), max(cooking_time)]
 
-        #less_than_average = round(average_cooking_time - std_deviation)
-        # more_than_average = round(average_cooking_time + std_deviation)
+        hists, bins = np.histogram(cooking_time, bins=bins)
 
-        return less_than_average, more_than_average
+        return bins[0], bins[-1]
 
     def lookups(self, request, model_admin):
 
