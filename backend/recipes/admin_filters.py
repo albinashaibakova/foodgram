@@ -1,79 +1,70 @@
-import numpy
 from django.contrib import admin
 from django.db.models import Count, Avg
 import numpy as np
-
 
 class CookingTimeFilter(admin.SimpleListFilter):
 
     title = 'Время приготовления'
     parameter_name = 'cooking_time'
 
-    def get_average_cooking_time(self, recipes):
-        recipes_count = recipes.all().count()
+    def get_histogram(self, recipes):
         cooking_time = [recipe.cooking_time for recipe in recipes.all()]
 
         if min(cooking_time) == max(cooking_time):
             return recipes
 
-        average_cooking_time = recipes.all().aggregate(Avg('cooking_time'))['cooking_time__avg']
-
         cooking_time = [recipe.cooking_time for recipe in recipes.all()]
 
-        bins = [min(cooking_time),  round(average_cooking_time), max(cooking_time)]
+        hists, bins = np.histogram(cooking_time, bins=3)
 
-        hists, bins = np.histogram(cooking_time, bins=bins)
+        histogram_ranges = [
+            f'{bins[0]} - {round(bins[1])}',
+            f'{round(bins[1])} - {round(bins[2])}',
+            f'{round(bins[2])} - {bins[3]}',
+        ]
 
-        return bins[0], bins[-1]
+        return hists, histogram_ranges
 
     def lookups(self, request, model_admin):
 
         recipes = model_admin.get_queryset(request)
-        if recipes:
-            less_avg, more_avg = self.get_average_cooking_time(recipes)
 
-            return [
-                ('less_than_avg', (
-                    f'Меньше {less_avg} минут '
-                    f'('
-                    f'{recipes.filter(cooking_time__lte=less_avg).count()}'
-                    f')')),
+        if not recipes:
+            return None
 
-                ('avg', (
-                    f'Меньше {more_avg} минут '
-                    f'('
-                    f'''{recipes.filter(cooking_time__lt=more_avg,
-                                        cooking_time__gt=less_avg).count()}'''
-                    f')')),
+        return [
+            (str(index), f'{range_recipes} ({self.get_histogram(recipes)[1][index]})')
+            for index, range_recipes in enumerate(self.get_histogram(recipes)[1])
+        ]
 
-                ('more_than_avg', (
-                    f'Дольше {more_avg} минут '
-                    f'({recipes.filter(cooking_time__gte=more_avg).count()})'))
-            ]
+    def filter_by_range(self, request, model_admin, range):
+        recipes = model_admin.get_queryset(request)
+        return recipes.filter(cooking_time__gte=range[0], cooking_time__lte=range[1])
 
     def queryset(self, request, recipes):
-        if recipes:
-            less_avg, more_avg = self.get_average_cooking_time(recipes)
+        filt_cooking_time = request.GET.get('cooking_time')
+        print(filt_cooking_time)
+        print(type(self.value()))
 
-            if self.value() == 'less_than_avg':
-                return recipes.filter(cooking_time__lte=less_avg)
+        if filt_cooking_time[self.value()] == self.get_histogram(recipes):
+            print(self.get_histogram(recipes))
 
-            if self.value() == 'avg':
-                return recipes.filter(cooking_time__lt=more_avg,
-                                      cooking_time__gt=less_avg)
+        return recipes
 
-            if self.value() == 'more_than_avg':
-                return recipes.filter(cooking_time__gte=more_avg)
+    @staticmethod
+    def filter_by_cooking_time_range(recipes, start, end):
+
+        return recipes.filter(cooking_time__range=(start, end))
 
 
 class HasRecipesFilter(admin.SimpleListFilter):
-    title = ('Есть рецепты')
+    title = 'Есть рецепты'
     parameter_name = 'has_recipes'
 
     def lookups(self, request, model_admin):
         return [
-            ('has_recipes=0', ('Нет')),
-            ('has_recipes=1', ('Да'))
+            ('has_recipes=0', 'Нет'),
+            ('has_recipes=1', 'Да')
         ]
 
     def queryset(self, request, users):
@@ -89,7 +80,7 @@ class HasRecipesFilter(admin.SimpleListFilter):
 
 
 class HasFollowersFilter(admin.SimpleListFilter):
-    title = ('Есть подписчики')
+    title = 'Есть подписчики'
     parameter_name = 'has_followers'
 
     def lookups(self, request, model_admin):

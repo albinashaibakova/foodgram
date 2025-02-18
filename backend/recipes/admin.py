@@ -101,7 +101,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Сколько раз в избранном')
     def is_favorite_count(self, recipe):
-        return recipe.recipes_favorite_related.count()
+        return recipe.recipes_favorite.count()
 
     @admin.display(description='Изображение блюда')
     @mark_safe
