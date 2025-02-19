@@ -17,11 +17,11 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
         hists, bins = np.histogram(cooking_time, bins=3)
 
-        histogram_ranges = [
-            f'{bins[0]} - {round(bins[1])}',
-            f'{round(bins[1])} - {round(bins[2])}',
-            f'{round(bins[2])} - {bins[3]}',
-        ]
+        histogram_ranges = {
+            '1': (bins[0], round(bins[1])),
+            '2': (round(bins[1]), round(bins[2])),
+            '3': (bins[2], bins[3]),
+        }
 
         return hists, histogram_ranges
 
@@ -32,29 +32,22 @@ class CookingTimeFilter(admin.SimpleListFilter):
         if not recipes:
             return None
 
-        return [
-            (str(index), f'{range_recipes} ({self.get_histogram(recipes)[1][index]})')
-            for index, range_recipes in enumerate(self.get_histogram(recipes)[1])
-        ]
+        return [value for value in self.get_histogram(recipes)[1].values()]
 
     def filter_by_range(self, request, model_admin, range):
         recipes = model_admin.get_queryset(request)
         return recipes.filter(cooking_time__gte=range[0], cooking_time__lte=range[1])
 
     def queryset(self, request, recipes):
-        filt_cooking_time = request.GET.get('cooking_time')
-        print(filt_cooking_time)
-        print(type(self.value()))
+        print(self.value())
+        print(self.get_histogram(recipes)[1])
 
-        if filt_cooking_time[self.value()] == self.get_histogram(recipes):
-            print(self.get_histogram(recipes))
 
-        return recipes
+        try:
+            self.filter_by_range(range=self.get_histogram(recipes)[1][self.value()])
 
-    @staticmethod
-    def filter_by_cooking_time_range(recipes, start, end):
-
-        return recipes.filter(cooking_time__range=(start, end))
+        except:
+            return recipes
 
 
 class HasRecipesFilter(admin.SimpleListFilter):
