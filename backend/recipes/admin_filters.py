@@ -32,7 +32,10 @@ class CookingTimeFilter(admin.SimpleListFilter):
         if not recipes:
             return None
 
-        return [value for value in self.get_histogram(recipes)[1].values()]
+        return [
+            f'{index}, {range}'
+            for index, range in enumerate(self.get_histogram(recipes)[1].values())
+        ]
 
     def filter_by_range(self, request, model_admin, range):
         recipes = model_admin.get_queryset(request)
