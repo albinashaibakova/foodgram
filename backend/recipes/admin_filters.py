@@ -18,9 +18,9 @@ class CookingTimeFilter(admin.SimpleListFilter):
         hists, bins = np.histogram(cooking_time, bins=3)
 
         histogram_ranges = {
-            '1': (bins[0], round(bins[1])),
-            '2': (round(bins[1]), round(bins[2])),
-            '3': (bins[2], bins[3]),
+            '0': (round(bins[0]), round(bins[1])),
+            '1': (round(bins[1]), round(bins[2])),
+            '2': (round(bins[2]), round(bins[3])),
         }
 
         return hists, histogram_ranges
@@ -33,29 +33,26 @@ class CookingTimeFilter(admin.SimpleListFilter):
             return None
 
         return [
-            f'{index}, {range}'
+            (index, f'{range[0]} - {range[1]} минут')
             for index, range in enumerate(self.get_histogram(recipes)[1].values())
         ]
 
-    def filter_by_range(self, request, model_admin, range):
-        recipes = model_admin.get_queryset(request)
+
+    def filter_by_range(self, recipes, range):
+
         return recipes.filter(cooking_time__gte=range[0], cooking_time__lte=range[1])
 
     def queryset(self, request, recipes):
-        print(self.value())
-        print(self.get_histogram(recipes)[1])
-
 
         try:
-            self.filter_by_range(range=self.get_histogram(recipes)[1][self.value()])
+            return self.filter_by_range(recipes=recipes,
+                             range=self.get_histogram(recipes)[1][self.value()])
 
-        except:
+        except KeyError:
             return recipes
 
 
-class HasRecipesFilter(admin.SimpleListFilter):
-    title = 'Есть рецепты'
-    parameter_name = 'has_recipes'
+class CountFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
@@ -75,15 +72,15 @@ class HasRecipesFilter(admin.SimpleListFilter):
             ).filter(recipes__isnull=False).filter(has_recipes__gte=1)
 
 
-class HasFollowersFilter(admin.SimpleListFilter):
+class HasRecipesFilter(CountFilter):
+    title = 'Есть рецепты'
+    parameter_name = 'has_recipes'
+
+
+class HasFollowersFilter(CountFilter):
     title = 'Есть подписчики'
     parameter_name = 'has_followers'
 
-    def lookups(self, request, model_admin):
-        return [
-            ('has_followers=0', ('Нет')),
-            ('has_followers=1', ('Да'))
-        ]
 
     def queryset(self, request, users):
         if self.value() == 'has_followers=0':
@@ -97,15 +94,9 @@ class HasFollowersFilter(admin.SimpleListFilter):
             ).filter(followers__isnull=False).filter(has_followers__gte=1)
 
 
-class HasFollowingAuthorsFilter(admin.SimpleListFilter):
-    title = ('Есть подписки')
+class HasFollowingAuthorsFilter(CountFilter):
+    title = 'Есть подписки'
     parameter_name = 'has_following_authors'
-
-    def lookups(self, request, model_admin):
-        return [
-            ('has_following_authors=0', ('Нет')),
-            ('has_following_authors=1', ('Да'))
-        ]
 
     def queryset(self, request, users):
         if self.value() == 'has_following_authors=0':
