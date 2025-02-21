@@ -47,7 +47,7 @@ class UsersViewSet(UserViewSet):
             detail=False)
     # Профиль пользователя
     def get_user_profile(self, request):
-        self.me(request)
+        return self.me(request)
 
     @action(methods=('put', 'delete'),
             url_path='me/avatar',
@@ -68,11 +68,14 @@ class UsersViewSet(UserViewSet):
             return Response(serializer.data,
                             status=status.HTTP_200_OK)
 
-
-        os.remove(request.build_absolute_uri(request.user.avatar))
-
-
-        request.user.avatar = None
+        os.remove('media/' + str(request.user.avatar))
+        serializer = UserAvatarSerializer(request.user,
+                                          data={
+                                              'avatar': None
+                                          }
+                             )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=('get',),
@@ -140,8 +143,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeAddUpdateSerializer
         return RecipeGetSerializer
 
-
-
     @action(methods=('get',),
             url_path='get-link',
             detail=True)
@@ -154,7 +155,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         short_url = reverse('short_link', kwargs={'slug': slug})
 
         return redirect(short_url)
-
 
     @action(methods=('post', 'delete'),
             url_path='favorite',

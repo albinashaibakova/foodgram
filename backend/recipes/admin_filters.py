@@ -56,56 +56,79 @@ class CountFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            ('has_recipes=0', 'Нет'),
-            ('has_recipes=1', 'Да')
+            ('{name}=0'.format(name=str(self.__str__())),
+             'Нет'),
+            ('{name}=1'.format(name=str(self.__str__())),
+             'Да'),
         ]
 
-    def queryset(self, request, users):
-        if self.value() == 'has_recipes=0':
-            return users.annotate(
-                has_recipes=Count('recipes')
-            ).filter(recipes__isnull=True).filter(has_recipes=0)
+    def __str__(self):
+        return str(self.__class__.__name__.lower().replace('filter', ''))
 
-        if self.value() == 'has_recipes=1':
-            return users.annotate(
-                has_recipes=Count('recipes')
-            ).filter(recipes__isnull=False).filter(has_recipes__gte=1)
+    def queryset(self, request, queryset):
+        return queryset
 
 
 class HasRecipesFilter(CountFilter):
     title = 'Есть рецепты'
-    parameter_name = 'has_recipes'
+    parameter_name = 'hasrecipes'
+
+    filter_params = {
+        'hasrecipes=0': {
+            'recipes__isnull': True
+        },
+        'hasrecipes=1': {
+            'recipes__isnull': False
+        }
+    }
+
+    def queryset(self, request, users):
+        try:
+            return users.filter(
+                **self.filter_params[self.value()]
+            ).distinct()
+        except KeyError:
+            return users
 
 
 class HasFollowersFilter(CountFilter):
     title = 'Есть подписчики'
-    parameter_name = 'has_followers'
-
+    parameter_name = 'hasfollowers'
+    filter_params = {
+            'hasfollowers=0': {
+                'followers__isnull': True
+            },
+            'hasfollowers=1': {
+                'followers__isnull': False
+            }
+        }
 
     def queryset(self, request, users):
-        if self.value() == 'has_followers=0':
-            return users.annotate(
-                has_followers=Count('followers')
-            ).filter(followers__isnull=True).filter(has_followers=0)
-
-        if self.value() == 'has_followers=1':
-            return users.annotate(
-                has_followers=Count('followers')
-            ).filter(followers__isnull=False).filter(has_followers__gte=1)
+        try:
+            return users.filter(
+                **self.filter_params[self.value()]
+            ).distinct()
+        except KeyError:
+            return users
 
 
 class HasFollowingAuthorsFilter(CountFilter):
     title = 'Есть подписки'
-    parameter_name = 'has_following_authors'
+    parameter_name = 'hasfollowingauthors'
+
+    filter_params = {
+        'hasfollowingauthors=0': {
+            'authors__isnull': True
+        },
+        'hasfollowingauthors=1': {
+            'authors__isnull': False
+        }
+    }
 
     def queryset(self, request, users):
-        if self.value() == 'has_following_authors=0':
-            return users.annotate(
-                has_following_authors=Count('authors')
-            ).filter(authors__isnull=True).filter(has_following_authors=0)
-
-        if self.value() == 'has_following_authors=1':
-            return users.annotate(
-                has_following_authors=Count('authors')
-            ).filter(authors__isnull=False
-                     ).filter(has_following_authors__gte=1)
+        try:
+            return users.filter(
+                **self.filter_params[self.value()]
+            ).distinct()
+        except KeyError:
+            return users
