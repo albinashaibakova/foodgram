@@ -33,10 +33,14 @@ class CookingTimeFilter(admin.SimpleListFilter):
         if not recipes:
             return None
 
-        return [
-            (index, f'{range[0]} - {range[1]} минут')
-            for index, range in enumerate(self.get_histogram(recipes)[1].values())
-        ]
+        try:
+            return [
+                (index, f'{range[0]} - {range[1]} минут')
+                for index, range in enumerate(self.get_histogram(recipes)[1].values())
+            ]
+
+        except IndexError:
+            return None
 
     def filter_by_range(self, recipes, range):
 

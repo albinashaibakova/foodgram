@@ -59,7 +59,7 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
     @mark_safe
     def user_avatar(self, user):
         if user.avatar:
-            return '<img src="%s" width ="50" height="50"/>{avatar}'.format(
+            return '<img src={avatar} width ="50" height="50"/>'.format(
                 avatar=user.avatar.url
             )
         return '-'
@@ -111,7 +111,7 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Изображение блюда')
     @mark_safe
     def recipe_image(self, recipe):
-        return '<img src="%s" width ="50" height="50"/> {image}'.format(
+        return '<img src={image} width ="50" height="50"/>'.format(
             image=recipe.image.url
         )
 

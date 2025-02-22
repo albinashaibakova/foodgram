@@ -1,7 +1,9 @@
-import json
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 
-from django.http import HttpResponse
+from recipes.models import Recipe
 
 
-def get_short_link(request, slug):
-    return HttpResponse(json.dumps({'short-link': request.build_absolute_uri()}))
+def get_short_link(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+    return redirect(reverse('api:recipe-detail', args=[pk]))

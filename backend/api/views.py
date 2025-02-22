@@ -1,9 +1,10 @@
+import json
 import os
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import Sum
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -22,7 +23,7 @@ from api.serializers import (
     RecipeGetSerializer, RecipeGetShortSerializer,
     TagSerializer, UserRepresentSerializer,
     UserAvatarSerializer)
-from api.utils import generate_slug, render_shopping_cart
+from api.utils import render_shopping_cart
 from recipes.models import (
     Ingredient, Favorite, Follow, Recipe, RecipeIngredient,
     ShoppingCart, Tag
@@ -114,7 +115,7 @@ class UsersViewSet(UserViewSet):
             try:
                 Follow.objects.create(user=user, author=author)
                 serializer = AuthorFollowRepresentSerializer(
-                    author,
+                    user,
                     context={'request': request})
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
@@ -147,14 +148,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             url_path='get-link',
             detail=True)
     def get_recipe_short_link(self, request, pk=None):
-        if not Recipe.objects.filter(id=pk).exists():
-            raise ValidationError('Рецепт не найден')
+        self.get_object()
+        original_url = request.META.get('HTTP_REFERER')
+        if original_url is None:
+            url = reverse('api:recipe-detail', kwargs={'pk': pk})
+            original_url = request.build_absolute_uri(url)
 
-        recipe = Recipe.objects.get(id=pk)
-        slug = generate_slug(string=recipe.name) + str(recipe.id)
-        short_url = reverse('short_link', kwargs={'slug': slug})
-
-        return redirect(short_url)
+        return HttpResponse(json.dumps({'short-link': pk}), content_type='application/json')
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
