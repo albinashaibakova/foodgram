@@ -7,12 +7,14 @@ from recipes.models import (
     Ingredient, Favorite,
     Follow,
     RecipeIngredient,
-    Recipe, ShoppingCart, Tag)
+    Recipe, ShoppingCart, Tag
+)
 from recipes.admin_filters import (
     CookingTimeFilter,
     HasFollowersFilter,
     HasFollowingAuthorsFilter,
-    HasRecipesFilter)
+    HasRecipesFilter
+)
 
 User = get_user_model()
 
@@ -21,6 +23,7 @@ class RecipeIngredientInline(admin.TabularInline):
 
     model = RecipeIngredient
     min_num = 1
+
 
 class RecipesCountMixin:
 
@@ -56,7 +59,9 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
     @mark_safe
     def user_avatar(self, user):
         if user.avatar:
-            return '<img src="%s" width ="50" height="50"/>{avatar}'.format(avatar=user.avatar.url)
+            return '<img src="%s" width ="50" height="50"/>{avatar}'.format(
+                avatar=user.avatar.url
+            )
         return '-'
 
     @admin.display(description='Количество подписок')
@@ -106,17 +111,21 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Изображение блюда')
     @mark_safe
     def recipe_image(self, recipe):
-        return '<img src="%s" width ="50" height="50"/> {image}'.format(image=recipe.image.url)
+        return '<img src="%s" width ="50" height="50"/> {image}'.format(
+            image=recipe.image.url
+        )
 
     @admin.display(description='Продукты')
     @mark_safe
     def display_ingredients(self, recipe):
 
-        return '<br>'.join(['{ingredient_name} - {ingredient_amount} {ingredient_measurement_unit}'.format(
+        return '<br>'.join(
+            ['{ingredient_name} - {ingredient_amount} {ingredient_measurement_unit}'.format(
                 ingredient_name=recipeingredient.ingredient.name.capitalize(),
                 ingredient_amount=recipeingredient.amount,
                 ingredient_measurement_unit=recipeingredient.ingredient.measurement_unit
-            ) for recipeingredient in recipe.recipeingredients.all()])
+            ) for recipeingredient in recipe.recipeingredients.all()]
+        )
 
     @mark_safe
     @admin.display(description='Тэги', )

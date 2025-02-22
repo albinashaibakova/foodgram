@@ -10,14 +10,15 @@ class GetIsFavoritedShippingCartField(serializers.BooleanField):
         self.model = model
 
     def get_attribute(self, instance):
-       return instance
+        return instance
 
     def to_representation(self, recipe):
 
         return (self.context.get('request').user.is_authenticated
                 and self.model.objects.filter(
                     user=self.context.get('request').user,
-                    recipe=recipe.id).exists())
+                    recipe=recipe.id).exists()
+                )
 
 
 class Base64ImageField(serializers.ImageField):

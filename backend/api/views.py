@@ -34,7 +34,7 @@ User = get_user_model()
 
 class FoodgramPaginator(pagination.PageNumberPagination):
     page_size = 5
-    page_size_query_param = 'page_size'
+    page_size_query_param = 'limit'
     max_page_size = 100
 
 
@@ -57,7 +57,7 @@ class UsersViewSet(UserViewSet):
     def set_avatar(self, request):
         if request.method == 'PUT':
 
-            if not 'avatar' in request.data:
+            if 'avatar' not in request.data:
                 raise ValidationError('Загрузите аватар!')
 
             serializer = UserAvatarSerializer(
@@ -222,7 +222,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {'error_message': 'Рецепт уже добавлен'},
                 status=status.HTTP_400_BAD_REQUEST,
                 )
-
 
     def delete_favorite_shopping_cart(self, request, model):
         """Функция для удаления рецепта из избранного или в корзины"""

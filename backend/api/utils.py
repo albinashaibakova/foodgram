@@ -1,11 +1,6 @@
 from datetime import date
 
-from django.db.models import Sum
-from django.http import FileResponse
 from django.utils.text import slugify
-
-from recipes.models import RecipeIngredient
-
 
 
 def generate_slug(string):
@@ -22,7 +17,9 @@ def render_shopping_cart(self, recipes, ingredients):
 
     today = date.today().strftime('%d-%m-%Y')
 
-    ingredients_to_render, recipes_to_render = download_shopping_cart_template(ingredients, recipes)
+    ingredients_to_render, recipes_to_render = download_shopping_cart_template(
+        ingredients, recipes
+    )
 
     shopping_list = '\n'.join(
         [
@@ -62,6 +59,5 @@ def download_shopping_cart_template(ingredients, recipes):
                 recipe_author=recipe[1]
             )
         )
-
 
     return '\n'.join(ingredients_to_render), '\n'.join(recipes_to_render)

@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
-from djoser.conf import settings
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -14,7 +13,7 @@ from recipes.models import (
     RecipeIngredient, Recipe,
     ShoppingCart, Tag
 )
-from recipes.models import MIN_AMOUNT
+from recipes.models import MIN_AMOUNT, NAME_MAX_LENGTH
 
 User = get_user_model()
 
@@ -32,8 +31,10 @@ class UserRepresentSerializer(UserSerializer):
         user = self.context.get('request').user
         return (user.is_authenticated
                 and author != user
-                and Follow.objects.filter(user=user,
-                                          author=author).exists())
+                and Follow.objects.filter(
+                    user=user,
+                    author=author
+                ).exists())
 
 
 class UserAvatarSerializer(serializers.ModelSerializer):
@@ -103,9 +104,10 @@ class RecipeGetShortSerializer(serializers.ModelSerializer):
 class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения полной информации о рецепте"""
 
-    ingredients = IngredientGetSerializer(many=True,
-                                          read_only=True,
-                                          source='recipeingredients')
+    ingredients = IngredientGetSerializer(
+        many=True,
+        read_only=True,
+        source='recipeingredients')
     author = UserRepresentSerializer()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = GetIsFavoritedShippingCartField(model=Favorite)
@@ -113,9 +115,18 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_cart', 'name',
-                  'image', 'text', 'cooking_time')
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time'
+        )
 
 
 class RecipeAddUpdateSerializer(serializers.ModelSerializer):
@@ -127,10 +138,12 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     )
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
-    name = serializers.CharField()
+    name = serializers.CharField(max_length=NAME_MAX_LENGTH)
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
-    cooking_time = serializers.IntegerField()
+    cooking_time = serializers.IntegerField(
+        validators=[MinValueValidator(MIN_AMOUNT)]
+    )
 
     class Meta:
         model = Recipe
@@ -144,7 +157,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time'
         )
-
 
     def validate_ingredients(self, ingredients):
         if not ingredients:
@@ -234,7 +246,10 @@ class AuthorFollowRepresentSerializer(UserRepresentSerializer):
 
     class Meta(UserRepresentSerializer.Meta):
         model = User
-        fields = tuple(UserRepresentSerializer.Meta.fields) + ('recipes', 'recipes_count',)
+        fields = (
+                tuple(UserRepresentSerializer.Meta.fields) +
+                ('recipes', 'recipes_count',)
+        )
 
     def get_recipes(self, author):
 

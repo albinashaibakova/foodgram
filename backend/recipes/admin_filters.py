@@ -1,6 +1,7 @@
-from django.contrib import admin
-from django.db.models import Count, Avg
 import numpy as np
+
+from django.contrib import admin
+
 
 class CookingTimeFilter(admin.SimpleListFilter):
 
@@ -37,16 +38,20 @@ class CookingTimeFilter(admin.SimpleListFilter):
             for index, range in enumerate(self.get_histogram(recipes)[1].values())
         ]
 
-
     def filter_by_range(self, recipes, range):
 
-        return recipes.filter(cooking_time__gte=range[0], cooking_time__lte=range[1])
+        return recipes.filter(
+            cooking_time__gte=range[0],
+            cooking_time__lte=range[1]
+        )
 
     def queryset(self, request, recipes):
 
         try:
-            return self.filter_by_range(recipes=recipes,
-                             range=self.get_histogram(recipes)[1][self.value()])
+            return self.filter_by_range(
+                recipes=recipes,
+                range=self.get_histogram(recipes)[1][self.value()]
+            )
 
         except KeyError:
             return recipes
