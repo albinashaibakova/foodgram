@@ -250,10 +250,7 @@ class AuthorFollowRepresentSerializer(UserRepresentSerializer):
     class Meta(UserRepresentSerializer.Meta):
         model = User
         fields = (tuple(UserRepresentSerializer.Meta.fields)
-                  + (
-                      'recipes',
-                      'recipes_count'
-                  )
+                  + ('recipes', 'recipes_count')
                   )
 
     def get_recipes(self, author):
