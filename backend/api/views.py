@@ -122,7 +122,7 @@ class UsersViewSet(UserViewSet):
                 return Response(
                     {
                         'error_message':
-                            f'Вы уже подписаны на пользователя!'
+                            'Вы уже подписаны на пользователя!'
                     },
                     status=status.HTTP_400_BAD_REQUEST)
 
