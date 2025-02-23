@@ -65,13 +65,13 @@ class Follow(models.Model):
     user = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
-        related_name='followers',
-        verbose_name='Пользователь')
+        related_name='authors',
+        verbose_name='Автор рецепта')
     author = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
-        related_name='authors',
-        verbose_name='Автор рецепта')
+        related_name='followers',
+        verbose_name='Подписка')
 
     class Meta:
         ordering = ('user__username', 'author__username',)

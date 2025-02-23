@@ -114,7 +114,7 @@ class UsersViewSet(UserViewSet):
             try:
                 Follow.objects.create(user=user, author=author)
                 serializer = AuthorFollowRepresentSerializer(
-                    user,
+                    author,
                     context={'request': request})
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
