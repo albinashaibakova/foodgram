@@ -122,7 +122,7 @@ class UsersViewSet(UserViewSet):
                 return Response(
                     {
                         'error_message':
-                            f'Вы уже подписаны на пользователя {author.username}'
+                            f'Вы уже подписаны на пользователя!'
                     },
                     status=status.HTTP_400_BAD_REQUEST)
 
@@ -226,8 +226,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         except IntegrityError:
             return Response(
                 {'error_message': 'Рецепт уже добавлен'},
-                status=status.HTTP_400_BAD_REQUEST,
-                )
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     def delete_favorite_shopping_cart(self, request, model):
         """Функция для удаления рецепта из избранного или в корзины"""

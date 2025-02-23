@@ -106,12 +106,10 @@ class HasFollowersFilter(CountFilter):
     title = 'Есть подписчики'
     parameter_name = 'hasfollowers'
     filter_params = {
-        'hasfollowers=0': {
-                'followers__isnull': True
-            },
-        'hasfollowers=1': {
-            'followers__isnull': False
-        }
+        'hasfollowers=0':
+            {'followers__isnull': True},
+        'hasfollowers=1':
+            {'followers__isnull': False}
     }
 
     def queryset(self, request, users):
