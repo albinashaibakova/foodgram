@@ -70,11 +70,10 @@ class UsersViewSet(UserViewSet):
                             status=status.HTTP_200_OK)
 
         os.remove('media/' + str(request.user.avatar))
-        serializer = UserAvatarSerializer(request.user,
-                                          data={
-                                              'avatar': None
-                                          }
-                             )
+        serializer = UserAvatarSerializer(
+            request.user,
+            data={'avatar': None}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -149,12 +148,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     def get_recipe_short_link(self, request, pk=None):
         self.get_object()
-        original_url = request.META.get('HTTP_REFERER')
-        if original_url is None:
-            url = reverse('api:recipe-detail', kwargs={'pk': pk})
-            original_url = request.build_absolute_uri(url)
-
-        return HttpResponse(json.dumps({'short-link': pk}), content_type='application/json')
+        url = reverse('short_link', kwargs={'pk': pk})
+        original_url = request.build_absolute_uri(url)
+        return HttpResponse(json.dumps({'short-link': original_url}),
+                            content_type='application/json')
 
     @action(methods=('post', 'delete'),
             url_path='favorite',

@@ -2,8 +2,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 
 from recipes.models import Recipe
+from rest_framework.exceptions import ValidationError
 
 
 def get_short_link(request, pk):
-    recipe = get_object_or_404(Recipe, pk=pk)
-    return redirect(reverse('api:recipe-detail', args=[pk]))
+    if Recipe.objects(id=pk).exists():
+        return redirect(reverse('api:recipe-detail', args=[pk]))
+    raise ValidationError('Recipe does not exist')
