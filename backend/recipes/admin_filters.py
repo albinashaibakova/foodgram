@@ -36,7 +36,9 @@ class CookingTimeFilter(admin.SimpleListFilter):
         try:
             return [
                 (index, f'{range[0]} - {range[1]} минут')
-                for index, range in enumerate(self.get_histogram(recipes)[1].values())
+                for index, range in enumerate(
+                    self.get_histogram(recipes)[1].values()
+                )
             ]
 
         except IndexError:
@@ -104,13 +106,13 @@ class HasFollowersFilter(CountFilter):
     title = 'Есть подписчики'
     parameter_name = 'hasfollowers'
     filter_params = {
-            'hasfollowers=0': {
+        'hasfollowers=0': {
                 'followers__isnull': True
             },
-            'hasfollowers=1': {
-                'followers__isnull': False
-            }
+        'hasfollowers=1': {
+            'followers__isnull': False
         }
+    }
 
     def queryset(self, request, users):
         try:

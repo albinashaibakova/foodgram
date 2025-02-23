@@ -24,7 +24,10 @@ class UserRepresentSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         model = User
-        fields = tuple(UserSerializer.Meta.fields) + ('avatar', 'is_subscribed')
+        fields = tuple(UserSerializer.Meta.fields) + (
+            'avatar',
+            'is_subscribed'
+        )
 
     def get_is_subscribed(self, author):
 

@@ -120,10 +120,10 @@ class RecipeAdmin(admin.ModelAdmin):
     def display_ingredients(self, recipe):
 
         return '<br>'.join(
-            ['{ingredient_name} - {ingredient_amount} {ingredient_measurement_unit}'.format(
-                ingredient_name=recipeingredient.ingredient.name.capitalize(),
-                ingredient_amount=recipeingredient.amount,
-                ingredient_measurement_unit=recipeingredient.ingredient.measurement_unit
+            ['{name} - {amount}' '{measurement_unit}'.format(
+                name=recipeingredient.ingredient.name.capitalize(),
+                amount=recipeingredient.amount,
+                measurement_unit=recipeingredient.ingredient.measurement_unit
             ) for recipeingredient in recipe.recipeingredients.all()]
         )
 

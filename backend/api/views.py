@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import FileResponse, HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -21,8 +21,7 @@ from api.serializers import (
     AuthorFollowRepresentSerializer,
     IngredientSerializer, RecipeAddUpdateSerializer,
     RecipeGetSerializer, RecipeGetShortSerializer,
-    TagSerializer, UserRepresentSerializer,
-    UserAvatarSerializer)
+    TagSerializer, UserAvatarSerializer)
 from api.utils import render_shopping_cart
 from recipes.models import (
     Ingredient, Favorite, Follow, Recipe, RecipeIngredient,
@@ -120,9 +119,12 @@ class UsersViewSet(UserViewSet):
                                 status=status.HTTP_201_CREATED)
 
             except IntegrityError:
-                return Response({
-                    'error_message': f'Вы уже подписаны на пользователя {author.username}'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {
+                        'error_message':
+                            f'Вы уже подписаны на пользователя {author.username}'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST)
 
         get_object_or_404(Follow, user=user, author=author).delete()
 
@@ -190,14 +192,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
         ingredients = RecipeIngredient.objects.filter(
-            recipe__recipes_shoppingcart__user=request.user,
-            ).values(
+            recipe__recipes_shoppingcart__user=request.user).values(
                 'recipe__name',
                 'ingredient__name',
-                'ingredient__measurement_unit'
-            ).annotate(quantity=Sum('amount')).order_by('amount')
+                'ingredient__measurement_unit').annotate(
+            quantity=Sum('amount')).order_by('amount')
 
-        shopping_list, filename = render_shopping_cart(self, recipes, ingredients)
+        shopping_list, filename = render_shopping_cart(
+            self,
+            recipes,
+            ingredients
+        )
         return FileResponse(shopping_list,
                             filename=filename,
                             content_type='text/plain')
@@ -206,13 +211,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Функция для добавления рецепта в избранное или в корзину"""
 
         user = request.user
-        recipe = get_object_or_404(Recipe, id=request.parser_context['kwargs']['pk'])
+        recipe = get_object_or_404(
+            Recipe,
+            id=request.parser_context['kwargs']['pk']
+        )
 
         try:
             return Response(
                 RecipeGetShortSerializer(
-                    model.objects.create(user=user, recipe=recipe).recipe
-                ).data,
+                    model.objects.create(
+                        user=user,
+                        recipe=recipe).recipe).data,
                 status=status.HTTP_201_CREATED)
         except IntegrityError:
             return Response(
@@ -224,7 +233,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Функция для удаления рецепта из избранного или в корзины"""
 
         user = request.user
-        recipe = get_object_or_404(Recipe, id=request.parser_context['kwargs']['pk'])
+        recipe = get_object_or_404(
+            Recipe,
+            id=request.parser_context['kwargs']['pk']
+        )
 
         get_object_or_404(model,
                           user=user,

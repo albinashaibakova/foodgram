@@ -1,5 +1,6 @@
 from datetime import date
 
+
 def render_shopping_cart(self, recipes, ingredients):
     """Рендер списка продуктов для рецептов"""
 
@@ -30,14 +31,14 @@ def download_shopping_cart_template(ingredients, recipes):
     for index, ingredient in enumerate(ingredients, start=1):
 
         ingredients_to_render.append(
-                '{index}) {ingredient__name} - '
-                '{quantity} ({measurement_unit})'.format(
-                    index=index,
-                    ingredient__name=ingredient['ingredient__name'].capitalize(),
-                    quantity=ingredient['quantity'],
-                    measurement_unit=ingredient['ingredient__measurement_unit']
-                )
+            '{index}) {name} - '
+            '{quantity} ({measure_unit})'.format(
+                index=index,
+                name=ingredient['ingredient__name'].capitalize(),
+                quantity=ingredient['quantity'],
+                measure_unit=ingredient['ingredient__measurement_unit']
             )
+        )
 
     for index, recipe in enumerate(recipes, start=1):
         recipes_to_render.append(
