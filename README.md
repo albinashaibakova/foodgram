@@ -85,11 +85,12 @@
 
 
 Техно-стек:
-python 3.9.8
-django 3.2.3
-drf 3.12.4
-gunicorn 20.1.0
-postgres 13.10
-nginx 1.22.1
-docker 20.10.16
-docker-compose 3.8
+python
+django
+djoser
+drf
+gunicorn
+postgres
+nginx
+docker
+docker-compose
