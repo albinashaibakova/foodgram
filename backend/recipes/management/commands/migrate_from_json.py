@@ -1,6 +1,7 @@
 import json
 
 from django.core.management.base import BaseCommand
+from django.db import IntegrityError
 
 
 class BaseImportCommand(BaseCommand):
@@ -19,7 +20,12 @@ class BaseImportCommand(BaseCommand):
             model.objects.bulk_create(
                 model(**element) for element in data
             )
-            print(model.__dict__)
-            print(f'{model} ({len(data)}) успешно загружены')
+            print('Объекты {model} ({number}) успешно загружены'.format(
+                model=model._meta.object_name,
+                number=len(data)
+            )
+            )
+        except IntegrityError:
+            pass
         except Exception as e:
             print(f'Error: {e}')
