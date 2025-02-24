@@ -158,33 +158,24 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
         )
 
     def validate_ingredients(self, ingredients):
-        if not ingredients:
-            raise serializers.ValidationError(
-                'Отсутствуют ингредиенты!'
-            )
-        ingredient_list = []
-        for recipe_ingredient in ingredients:
-
-            if recipe_ingredient in ingredient_list:
-                raise serializers.ValidationError(
-                    'Ингредиенты повторяются'
-                )
-            ingredient_list.append(recipe_ingredient)
-        return ingredients
+        return self.validate_elements(ingredients)
 
     def validate_tags(self, tags):
-        if not tags:
+        return self.validate_elements(tags)
+
+    def validate_elements(self, elements):
+        if not elements:
             raise serializers.ValidationError(
-                'Отсутствуют тэги!'
+                f'Отсутствуют {elements.__class__.__name__}'
             )
-        tag_list = []
-        for tag in tags:
-            if tag in tag_list:
+        elements_list = []
+        for element in elements:
+            if element in elements_list:
                 raise serializers.ValidationError(
-                    'Тэги повторяются'
+                    f'{element.__class__.__name__} повторяются'
                 )
-            tag_list.append(tag)
-        return tags
+            elements_list.append(element)
+        return elements
 
     @staticmethod
     def add_ingredients_tags(recipe, ingredients, tags):
