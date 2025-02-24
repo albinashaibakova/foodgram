@@ -12,11 +12,14 @@ class BaseImportCommand(BaseCommand):
 
     def handle(self, model=None, **kwargs):
         json_file = kwargs['json_file']
-
         with open(json_file) as file:
             data = json.load(file)
 
-        self.import_data(data)
-
-    def import_data(self, data):
-        raise NotImplementedError('Subclasses must implement this method')
+        try:
+            model.objects.bulk_create(
+                model(**element) for element in data
+            )
+            print(model.__dict__)
+            print(f'{model} ({len(data)}) успешно загружены')
+        except Exception as e:
+            print(f'Error: {e}')
