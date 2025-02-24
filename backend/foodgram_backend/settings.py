@@ -120,10 +120,11 @@ DATABASE_POSTGRES = {
 
 DATABASE_TYPE = os.getenv('DATABASE_TYPE', 'sqlite3')
 
-if DATABASE_TYPE == 'sqlite3':
-    DATABASES = DATABASE_SQLITE
 if DATABASE_TYPE == 'postgres':
     DATABASES = DATABASE_POSTGRES
+else:
+    DATABASES = DATABASE_SQLITE
+
 
 
 # Password validation
