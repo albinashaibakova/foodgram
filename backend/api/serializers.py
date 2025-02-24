@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -24,7 +23,8 @@ class UserRepresentSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         model = User
-        fields = tuple(UserSerializer.Meta.fields) + (
+        fields = (
+            *UserSerializer.Meta.fields,
             'avatar',
             'is_subscribed'
         )
@@ -70,9 +70,7 @@ class AddIngredientSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source='ingredient'
     )
-    amount = serializers.IntegerField(
-        validators=[MinValueValidator(MIN_AMOUNT)]
-    )
+    amount = serializers.IntegerField(min_value=MIN_AMOUNT)
 
     class Meta:
         model = RecipeIngredient
@@ -144,9 +142,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=NAME_MAX_LENGTH)
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
-    cooking_time = serializers.IntegerField(
-        validators=[MinValueValidator(MIN_AMOUNT)]
-    )
+    cooking_time = serializers.IntegerField(min_value=MIN_AMOUNT)
 
     class Meta:
         model = Recipe
@@ -249,9 +245,11 @@ class AuthorFollowRepresentSerializer(UserRepresentSerializer):
 
     class Meta(UserRepresentSerializer.Meta):
         model = User
-        fields = (tuple(UserRepresentSerializer.Meta.fields)
-                  + ('recipes', 'recipes_count')
-                  )
+        fields = (
+            *UserRepresentSerializer.Meta.fields,
+            'recipes',
+            'recipes_count'
+        )
 
     def get_recipes(self, author):
 
