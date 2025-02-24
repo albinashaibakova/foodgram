@@ -58,17 +58,13 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
     @admin.display(description='Аватар')
     @mark_safe
     def user_avatar(self, user):
-        if user.avatar:
-            return '<img src={avatar} width ="50" height="50"/>'.format(
-                avatar=user.avatar.url
-            )
-        return '-'
+        return f'<img src={user.avatar.url} width ="50" height="50"/>'
 
-    @admin.display(description='Количество подписок')
+    @admin.display(description='Подписки')
     def following_authors_count(self, user):
         return user.authors.count()
 
-    @admin.display(description='Количество подписчиков')
+    @admin.display(description='Подписчики')
     def followers_count(self, user):
         return user.followers.count()
 
@@ -104,27 +100,25 @@ class RecipeAdmin(admin.ModelAdmin):
     list_per_page = 25
     inlines = [RecipeIngredientInline]
 
-    @admin.display(description='Сколько раз в избранном')
+    @admin.display(description='В избранном')
     def is_favorite_count(self, recipe):
         return recipe.recipes_favorite.count()
 
-    @admin.display(description='Изображение блюда')
+    @admin.display(description='Изображение')
     @mark_safe
     def recipe_image(self, recipe):
-        return '<img src={image} width ="50" height="50"/>'.format(
-            image=recipe.image.url
-        )
+        return f'<img src={recipe.image.url} width ="50" height="50"/>'
 
     @admin.display(description='Продукты')
     @mark_safe
     def display_ingredients(self, recipe):
 
         return '<br>'.join(
-            ['{name} - {amount}' '{measurement_unit}'.format(
+            '{name} - {amount}' '{measurement_unit}'.format(
                 name=recipeingredient.ingredient.name.capitalize(),
                 amount=recipeingredient.amount,
                 measurement_unit=recipeingredient.ingredient.measurement_unit
-            ) for recipeingredient in recipe.recipeingredients.all()]
+            ) for recipeingredient in recipe.recipeingredients.all()
         )
 
     @mark_safe
@@ -163,11 +157,6 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite, ShoppingCart)
 class Favorite(admin.ModelAdmin):
-    list_display = ('user', 'recipe')
-    list_per_page = 25
-
-
-class ShoppingCart(admin.ModelAdmin):
     list_display = ('user', 'recipe')
     list_per_page = 25
 
