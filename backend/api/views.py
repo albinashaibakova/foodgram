@@ -1,6 +1,3 @@
-import json
-import os
-
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import Sum
@@ -33,9 +30,7 @@ User = get_user_model()
 
 
 class FoodgramPaginator(pagination.PageNumberPagination):
-    page_size = 5
     page_size_query_param = 'limit'
-    max_page_size = 100
 
 
 class UsersViewSet(UserViewSet):
@@ -45,16 +40,16 @@ class UsersViewSet(UserViewSet):
             url_path='me',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
-    # Профиль пользователя
     def get_user_profile(self, request):
+        """Профиль пользователя"""
         return self.me(request)
 
     @action(methods=('put', 'delete'),
             url_path='me/avatar',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
-    # Смена аватарки
     def set_avatar(self, request):
+        """Смена аватарки"""
         if request.method == 'PUT':
 
             if 'avatar' not in request.data:
@@ -81,8 +76,8 @@ class UsersViewSet(UserViewSet):
             url_path='subscriptions',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
-    # Подписки пользователя
     def get_subscriptions(self, request, **kwargs):
+        """Подписки пользователя"""
         paginator = FoodgramPaginator()
         subscription_authors = [
             subscription.author for subscription in
@@ -101,15 +96,13 @@ class UsersViewSet(UserViewSet):
             url_path='subscribe',
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
-    # Подписка на пользователя
     def subscribe(self, request, *args, **kwargs):
+        """Подписка на пользователя"""
         user = request.user
         author = get_object_or_404(User, id=kwargs['id'])
-
         if request.method == 'POST':
             if author == user:
                 raise ValidationError('Вы не можете подписаться на себя!')
-
             try:
                 Follow.objects.create(user=user, author=author)
                 serializer = AuthorFollowRepresentSerializer(
@@ -117,7 +110,6 @@ class UsersViewSet(UserViewSet):
                     context={'request': request})
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
-
             except IntegrityError:
                 return Response(
                     {
@@ -125,15 +117,12 @@ class UsersViewSet(UserViewSet):
                             'Вы уже подписаны на пользователя!'
                     },
                     status=status.HTTP_400_BAD_REQUEST)
-
         get_object_or_404(Follow, user=user, author=author).delete()
-
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с рецептами"""
-
     queryset = Recipe.objects.all()
     search_fields = ('author.id', 'tags', 'user.favorites')
     permission_classes = (IsOwnerOrReadOnly,)
@@ -159,45 +148,38 @@ class RecipeViewSet(viewsets.ModelViewSet):
             url_path='favorite',
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
-    # Добавление в избранное
     def favorite(self, request, *args, **kwargs):
-
+        """Добавление в избранное"""
         if request.method == 'POST':
             return self.add_favorite_shopping_cart(request, model=Favorite)
-
         return self.delete_favorite_shopping_cart(request, model=Favorite)
 
     @action(methods=('post', 'delete'),
             url_path='shopping_cart',
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
-    # Добавление рецепта в корзину
     def shopping_cart(self, request, *args, **kwargs):
-
+        """Добавление рецепта в корзину"""
         if request.method == 'POST':
             return self.add_favorite_shopping_cart(request, model=ShoppingCart)
-
         return self.delete_favorite_shopping_cart(request, model=ShoppingCart)
 
     @action(methods=('get',),
             url_path='download_shopping_cart',
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
-    # Скачивание ингредиентов для рецептов, добавленных в корзину
     def download_shopping_cart(self, request, *args, **kwargs):
-
+        """Скачивание ингредиентов для рецептов, добавленных в корзину"""
         recipes = request.user.shoppingcarts.values_list(
             'recipe__name',
             'recipe__author__username'
         )
-
         ingredients = RecipeIngredient.objects.filter(
             recipe__shoppingcarts__user=request.user).values(
                 'recipe__name',
                 'ingredient__name',
                 'ingredient__measurement_unit').annotate(
             quantity=Sum('amount')).order_by('amount')
-
         shopping_list, filename = render_shopping_cart(
             self,
             recipes,
@@ -209,13 +191,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def add_favorite_shopping_cart(self, request, model):
         """Функция для добавления рецепта в избранное или в корзину"""
-
         user = request.user
         recipe = get_object_or_404(
             Recipe,
             id=request.parser_context['kwargs']['pk']
         )
-
         try:
             return Response(
                 RecipeGetShortSerializer(
@@ -231,13 +211,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def delete_favorite_shopping_cart(self, request, model):
         """Функция для удаления рецепта из избранного или в корзины"""
-
         user = request.user
         recipe = get_object_or_404(
             Recipe,
             id=request.parser_context['kwargs']['pk']
         )
-
         get_object_or_404(model,
                           user=user,
                           recipe=recipe).delete()
@@ -246,7 +224,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для отображения информации о тэгах"""
-
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (permissions.AllowAny,)
@@ -255,7 +232,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для отображения информации об ингредиентах"""
-
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
