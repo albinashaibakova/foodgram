@@ -1,4 +1,4 @@
-from django.shortcuts import reverse, redirect, render
+from django.shortcuts import redirect
 
 from recipes.models import Recipe
 from rest_framework.exceptions import ValidationError

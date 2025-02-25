@@ -29,11 +29,11 @@ class CookingTimeFilter(admin.SimpleListFilter):
         if min(cooking_time) == max(cooking_time):
             return None
         return [
-                (index, f'{range[0]} - {range[1]} минут')
-                for index, range in enumerate(
-                    self.cooking_time_ranges.values()
-                )
-            ]
+            (index, f'{range[0]} - {range[1]} минут')
+            for index, range in enumerate(
+                self.cooking_time_ranges.values()
+            )
+        ]
 
     def queryset(self, request, recipes):
         if not self.value():
@@ -98,6 +98,7 @@ class HasFollowersFilter(CountFilter):
 
     def queryset(self, request, users):
         return super().queryset(request, users)
+
 
 class HasFollowingAuthorsFilter(CountFilter):
     title = 'Есть подписки'
