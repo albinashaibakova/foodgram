@@ -18,7 +18,6 @@ User = get_user_model()
 
 
 class UserRepresentSerializer(UserSerializer):
-
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
@@ -30,7 +29,6 @@ class UserRepresentSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, author):
-
         user = self.context.get('request').user
         return (user.is_authenticated
                 and author != user
@@ -50,7 +48,6 @@ class UserAvatarSerializer(serializers.ModelSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с тэгами"""
-
     class Meta:
         model = Tag
         fields = '__all__'
@@ -58,7 +55,6 @@ class TagSerializer(serializers.ModelSerializer):
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами"""
-
     class Meta:
         model = Ingredient
         fields = '__all__'
@@ -66,9 +62,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class AddIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами в рецепте"""
-
     id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(), source='ingredient'
+        queryset=Ingredient.objects.all(),
+        source='ingredient'
     )
     amount = serializers.IntegerField(min_value=MIN_AMOUNT)
 
@@ -80,7 +76,6 @@ class AddIngredientSerializer(serializers.ModelSerializer):
 class IngredientGetSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения ингредиентов,
      входящих в состав рецепта"""
-
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
     measurement_unit = serializers.CharField(
@@ -95,7 +90,6 @@ class IngredientGetSerializer(serializers.ModelSerializer):
 
 class RecipeGetShortSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения краткой информации о рецепте"""
-
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
@@ -104,11 +98,10 @@ class RecipeGetShortSerializer(serializers.ModelSerializer):
 
 class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения полной информации о рецепте"""
-
     ingredients = IngredientGetSerializer(
         many=True,
-        read_only=True,
-        source='recipeingredients')
+        read_only=True
+    )
     author = UserRepresentSerializer()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = GetIsFavoritedShippingCartField(model=Favorite)
@@ -179,14 +172,12 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     @staticmethod
     def add_ingredients_tags(recipe, ingredients, tags):
         recipe.tags.set(tags)
-
         RecipeIngredient.objects.bulk_create(
             RecipeIngredient(
                 ingredient=recipe_ingredient['ingredient'],
                 recipe=recipe,
                 amount=recipe_ingredient['amount'])
             for recipe_ingredient in ingredients)
-
         return recipe
 
     def create(self, validated_data):
@@ -227,7 +218,6 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
 
 class AuthorFollowRepresentSerializer(UserRepresentSerializer):
     """Сериализатор для отображения информации о подписках пользователя"""
-
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.ReadOnlyField(source='recipes.count')
 
