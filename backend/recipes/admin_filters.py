@@ -7,6 +7,10 @@ class CookingTimeFilter(admin.SimpleListFilter):
     title = 'Время приготовления'
     parameter_name = 'cooking_time'
 
+    def __init__(self, request, lookup_params, model, model_admin):
+        self.cooking_time_ranges = self.get_histogram(model.objects.all())
+        super().__init__(request, lookup_params, model, model_admin)
+
     def get_histogram(self, recipes):
         cooking_time = [recipe.cooking_time for recipe in recipes.all()]
         hists, bins = np.histogram(cooking_time, bins=3)
@@ -15,7 +19,7 @@ class CookingTimeFilter(admin.SimpleListFilter):
             '1': (round(bins[1]), round(bins[2])),
             '2': (round(bins[2]), round(bins[3])),
         }
-        return hists, histogram_ranges
+        return histogram_ranges
 
     def lookups(self, request, model_admin):
         recipes = model_admin.get_queryset(request)
@@ -27,18 +31,16 @@ class CookingTimeFilter(admin.SimpleListFilter):
         return [
                 (index, f'{range[0]} - {range[1]} минут')
                 for index, range in enumerate(
-                    self.get_histogram(recipes)[1].values()
+                    self.cooking_time_ranges.values()
                 )
             ]
 
-    def filter_by_range(self, recipes, range):
-        return recipes.filter(cooking_time__range=range)
-
     def queryset(self, request, recipes):
-        return self.filter_by_range(
-                recipes=recipes,
-                range=self.get_histogram(recipes)[1][self.value()]
-            )
+        if not self.value():
+            return recipes
+        return recipes.filter(
+            cooking_time__range=self.cooking_time_ranges[self.value()]
+        )
 
 
 class CountFilter(admin.SimpleListFilter):
