@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.db.models import Sum
@@ -137,11 +139,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
             url_path='get-link',
             detail=True)
     def get_recipe_short_link(self, request, pk=None):
-        self.get_object()
-        url = reverse('short_link', kwargs={'pk': pk})
-        original_url = request.build_absolute_uri(url)
-        return HttpResponse(json.dumps({'short-link': original_url}),
-                            content_type='application/json')
+        if not Recipe.objects.filter(pk=pk).exists():
+            raise ValidationError('Рецепт не найден')
+        return HttpResponse(
+            json.dumps(
+                {
+                    'short-link': request.build_absolute_uri(
+                        reverse('short_link', kwargs={'pk': pk})
+                    )
+                }
+            ),
+            content_type='application/json')
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
@@ -149,9 +157,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     def favorite(self, request, *args, **kwargs):
         """Добавление в избранное"""
+        pk = kwargs.get('pk')
         if request.method == 'POST':
-            return self.add_favorite_shopping_cart(request, model=Favorite)
-        return self.delete_favorite_shopping_cart(request, model=Favorite)
+            return self.add_favorite_shopping_cart(
+                request,
+                model=Favorite,
+                pk=pk
+            )
+        return self.delete_favorite_shopping_cart(
+            request,
+            model=Favorite,
+            pk=pk
+        )
 
     @action(methods=('post', 'delete'),
             url_path='shopping_cart',
@@ -159,9 +176,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     def shopping_cart(self, request, *args, **kwargs):
         """Добавление рецепта в корзину"""
+        pk = self.kwargs.get('pk')
         if request.method == 'POST':
-            return self.add_favorite_shopping_cart(request, model=ShoppingCart)
-        return self.delete_favorite_shopping_cart(request, model=ShoppingCart)
+            return self.add_favorite_shopping_cart(
+                request,
+                model=ShoppingCart,
+                pk=pk
+            )
+        return self.delete_favorite_shopping_cart(
+            request,
+            model=ShoppingCart,
+            pk=pk
+        )
 
     @action(methods=('get',),
             url_path='download_shopping_cart',
@@ -188,36 +214,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
                             filename=filename,
                             content_type='text/plain')
 
-    def add_favorite_shopping_cart(self, request, model):
+    def add_favorite_shopping_cart(self, request, model, pk):
         """Функция для добавления рецепта в избранное или в корзину"""
         user = request.user
-        recipe = get_object_or_404(
-            Recipe,
-            id=request.parser_context['kwargs']['pk']
+        recipe = get_object_or_404(Recipe, id=pk)
+        instance, created = model.objects.get_or_create(
+            user=user,
+            recipe=recipe
         )
-        try:
-            return Response(
-                RecipeGetShortSerializer(
-                    model.objects.create(
-                        user=user,
-                        recipe=recipe).recipe).data,
-                status=status.HTTP_201_CREATED)
-        except IntegrityError:
-            return Response(
-                {'error_message': 'Рецепт уже добавлен'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if not created:
+            raise ValidationError(f'Рецепт {instance.recipe.name} '
+                                  f'уже был добавлен')
+        return Response(RecipeGetShortSerializer(instance.recipe).data,
+                        status=status.HTTP_201_CREATED)
 
-    def delete_favorite_shopping_cart(self, request, model):
+    def delete_favorite_shopping_cart(self, request, model, pk=None):
         """Функция для удаления рецепта из избранного или в корзины"""
-        user = request.user
-        recipe = get_object_or_404(
-            Recipe,
-            id=request.parser_context['kwargs']['pk']
-        )
-        get_object_or_404(model,
-                          user=user,
-                          recipe=recipe).delete()
+        get_object_or_404(model, id=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
