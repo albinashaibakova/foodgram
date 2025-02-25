@@ -186,13 +186,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
     # Скачивание ингредиентов для рецептов, добавленных в корзину
     def download_shopping_cart(self, request, *args, **kwargs):
 
-        recipes = request.user.recipes_shoppingcart_related.values_list(
+        recipes = request.user.shoppingcarts.values_list(
             'recipe__name',
             'recipe__author__username'
         )
 
         ingredients = RecipeIngredient.objects.filter(
-            recipe__recipes_shoppingcart__user=request.user).values(
+            recipe__shoppingcarts__user=request.user).values(
                 'recipe__name',
                 'ingredient__name',
                 'ingredient__measurement_unit').annotate(
