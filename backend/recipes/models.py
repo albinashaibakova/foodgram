@@ -24,7 +24,6 @@ MIN_AMOUNT = 1
 
 class FoodgramUser(AbstractUser):
     """Модель пользователя сервиса FOODGRAM"""
-
     username = models.CharField(
         max_length=USERNAME_MAX_LENGTH,
         unique=True,
@@ -44,6 +43,7 @@ class FoodgramUser(AbstractUser):
     avatar = models.ImageField(
         blank=True,
         null=True,
+        default='users/avatars/default-avatar.jpg',
         upload_to='users/avatars/',
         verbose_name='Аватар')
 
@@ -61,7 +61,6 @@ class FoodgramUser(AbstractUser):
 
 class Follow(models.Model):
     """Модель для описания подписки на пользователя"""
-
     user = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
@@ -89,7 +88,6 @@ class Follow(models.Model):
 
 class Tag(models.Model):
     """Модель для описания тэгов"""
-
     name = models.CharField(
         max_length=TAG_MAX_LENGTH,
         unique=True,
@@ -110,7 +108,6 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """ Модель для описания продуктов"""
-
     name = models.CharField(
         max_length=INGREDIENT_MAX_LENGTH,
         verbose_name='Название')
@@ -133,7 +130,6 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     """Модель для описания рецепта"""
-
     author = models.ForeignKey(
         FoodgramUser,
         on_delete=models.CASCADE,
@@ -224,7 +220,6 @@ class RecipeUserBaseModel(models.Model):
 
 class Favorite(RecipeUserBaseModel):
     """Модель для описания добавления рецепта в избранное"""
-
     class Meta(RecipeUserBaseModel.Meta):
         verbose_name = 'Рецепт в избранном'
         verbose_name_plural = 'Рецепты в избранном'
@@ -232,7 +227,6 @@ class Favorite(RecipeUserBaseModel):
 
 class ShoppingCart(RecipeUserBaseModel):
     """Модель для описания добавления рецепта в корзину"""
-
     class Meta(RecipeUserBaseModel.Meta):
         verbose_name = 'Рецепт в корзине'
         verbose_name_plural = 'Рецепты в корзине'

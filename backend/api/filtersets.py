@@ -13,7 +13,6 @@ class IngredientFilter(FilterSet):
 
 class RecipeFilterSet(FilterSet):
     """Фильтр для рецептов"""
-
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
@@ -36,10 +35,10 @@ class RecipeFilterSet(FilterSet):
 
     def filter_is_favorited(self, recipes, name, value):
         if self.request.user.is_authenticated and value:
-            return recipes.filter(recipes_favorite__user=self.request.user)
+            return recipes.filter(favorites__user=self.request.user)
         return recipes
 
     def filter_is_in_shopping_cart(self, recipes, name, value):
         if self.request.user.is_authenticated and value:
-            return recipes.filter(recipes_shoppingcart__user=self.request.user)
+            return recipes.filter(shoppingcarts__user=self.request.user)
         return recipes

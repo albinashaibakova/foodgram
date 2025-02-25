@@ -34,7 +34,6 @@ class FoodgramPaginator(pagination.PageNumberPagination):
 
 class UsersViewSet(UserViewSet):
     """Вьюсет для работы с пользователями"""
-
     @action(methods=('get', 'patch'),
             url_path='me',
             permission_classes=(permissions.IsAuthenticated,),
@@ -50,10 +49,8 @@ class UsersViewSet(UserViewSet):
     def set_avatar(self, request):
         """Смена аватарки"""
         if request.method == 'PUT':
-
             if 'avatar' not in request.data:
                 raise ValidationError('Загрузите аватар!')
-
             serializer = UserAvatarSerializer(
                 request.user,
                 data=request.data)
@@ -61,7 +58,6 @@ class UsersViewSet(UserViewSet):
             serializer.save()
             return Response(serializer.data,
                             status=status.HTTP_200_OK)
-
         request.user.avatar.delete()
         serializer = UserAvatarSerializer(
             request.user,
@@ -108,6 +104,9 @@ class UsersViewSet(UserViewSet):
             user=user,
             author=author
         )
+        print(AuthorFollowRepresentSerializer(
+            author,
+            context={'request': request}).data)
         if not created:
             raise ValidationError(
                 f'Вы не можете повторно подписаться '

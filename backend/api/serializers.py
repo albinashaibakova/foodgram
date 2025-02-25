@@ -183,7 +183,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = super().create(validated_data)
         self.add_ingredients_tags(recipe, ingredients, tags)
         return recipe
 
@@ -230,7 +230,6 @@ class AuthorFollowRepresentSerializer(UserRepresentSerializer):
         )
 
     def get_recipes(self, author):
-
         return RecipeGetShortSerializer(
             Recipe.objects.filter(author=author)[:int(
                 self.context['request'].GET.get('recipes_limit', 10 ** 10)
