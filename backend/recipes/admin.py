@@ -102,7 +102,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='В избранном')
     def is_favorite_count(self, recipe):
-        return recipe.recipes_favorite.count()
+        return recipe.favorites.count()
 
     @admin.display(description='Изображение')
     @mark_safe

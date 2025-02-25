@@ -1,9 +1,6 @@
-import json
-
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
 from django.db.models import Sum
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -141,15 +138,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_recipe_short_link(self, request, pk=None):
         if not Recipe.objects.filter(pk=pk).exists():
             raise ValidationError('Рецепт не найден')
-        return HttpResponse(
-            json.dumps(
-                {
-                    'short-link': request.build_absolute_uri(
-                        reverse('short_link', kwargs={'pk': pk})
-                    )
-                }
-            ),
-            content_type='application/json')
+        return Response(
+            data={'short-link': request.build_absolute_uri(
+                reverse('short_link', kwargs={'pk': pk})
+            )
+            }
+        )
 
     @action(methods=('post', 'delete'),
             url_path='favorite',
