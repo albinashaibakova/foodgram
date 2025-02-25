@@ -100,7 +100,8 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения полной информации о рецепте"""
     ingredients = IngredientGetSerializer(
         many=True,
-        read_only=True
+        read_only=True,
+        source='recipeingredients'
     )
     author = UserRepresentSerializer()
     tags = TagSerializer(many=True, read_only=True)
@@ -178,6 +179,7 @@ class RecipeAddUpdateSerializer(serializers.ModelSerializer):
                 recipe=recipe,
                 amount=recipe_ingredient['amount'])
             for recipe_ingredient in ingredients)
+        print(recipe.recipeingredients.all())
         return recipe
 
     def create(self, validated_data):

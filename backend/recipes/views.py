@@ -1,12 +1,12 @@
-from django.shortcuts import redirect
+from django.shortcuts import reverse, redirect, render
 
 from recipes.models import Recipe
 from rest_framework.exceptions import ValidationError
 
 
-def get_short_link(request, pk):
-    scheme = 'https' if request.is_secure() else 'http'
-    domain = request.META['HTTP_HOST']
+def redirect_short_link(request, pk):
     if Recipe.objects.filter(id=pk).exists():
+        scheme = 'https' if request.is_secure() else 'http'
+        domain = request.get_host()
         return redirect(f'{scheme}://{domain}/recipes/{pk}/')
     raise ValidationError(f'Рецепт по ключу {pk} не найден')
