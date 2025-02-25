@@ -58,6 +58,8 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
     @admin.display(description='Аватар')
     @mark_safe
     def user_avatar(self, user):
+        if not user.avatar:
+            return None
         return f'<img src={user.avatar.url} width ="50" height="50"/>'
 
     @admin.display(description='Подписки')
@@ -107,6 +109,8 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Изображение')
     @mark_safe
     def recipe_image(self, recipe):
+        if not recipe.image:
+            return None
         return f'<img src={recipe.image.url} width ="50" height="50"/>'
 
     @admin.display(description='Продукты')

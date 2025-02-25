@@ -42,6 +42,10 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
 
 class CountFilter(admin.SimpleListFilter):
+    def __init__(self, filter_params, *args, **kwargs):
+        self.filter_params = filter_params
+        super().__init__(filter_params, *args, **kwargs)
+
     def lookups(self, request, model_admin):
         return [
             ('{name}=0'.format(name=str(self.__str__())),
@@ -50,6 +54,14 @@ class CountFilter(admin.SimpleListFilter):
              'Да'),
         ]
 
+    def queryset(self, request, users):
+        if not self.value():
+            return users
+        print(self.filter_params[self.value()])
+        return users.filter(
+            **self.filter_params[self.value()]
+        ).distinct()
+
     def __str__(self):
         return str(self.__class__.__name__.lower().replace('filter', ''))
 
@@ -57,56 +69,53 @@ class CountFilter(admin.SimpleListFilter):
 class HasRecipesFilter(CountFilter):
     title = 'Есть рецепты'
     parameter_name = 'hasrecipes'
-    filter_params = {
-        'hasrecipes=0': {
-            'recipes__isnull': True
-        },
-        'hasrecipes=1': {
-            'recipes__isnull': False
+
+    def __init__(self, filter_params, *args, **kwargs):
+        self.filter_params = {
+            'hasrecipes=0': {
+                'recipes__isnull': True
+            },
+            'hasrecipes=1': {
+                'recipes__isnull': False
+            }
         }
-    }
+        super().__init__(self.filter_params, *args, **kwargs)
 
     def queryset(self, request, users):
-        if not self.value():
-            return users
-        return users.filter(
-                **self.filter_params[self.value()]
-            ).distinct()
+        super().queryset(request, users)
 
 
 class HasFollowersFilter(CountFilter):
     title = 'Есть подписчики'
     parameter_name = 'hasfollowers'
-    filter_params = {
-        'hasfollowers=0':
-            {'followers__isnull': True},
-        'hasfollowers=1':
-            {'followers__isnull': False}
-    }
+
+    def __init__(self, filter_params, *args, **kwargs):
+        self.filter_params = {
+            'hasfollowers=0':
+                {'followers__isnull': True},
+            'hasfollowers=1':
+                {'followers__isnull': False}
+        }
+        super().__init__(self.filter_params, *args, **kwargs)
 
     def queryset(self, request, users):
-        if not self.value():
-            return users
-        return users.filter(
-                **self.filter_params[self.value()]
-            ).distinct()
+        super().queryset(request, users)
 
 
 class HasFollowingAuthorsFilter(CountFilter):
     title = 'Есть подписки'
     parameter_name = 'hasfollowingauthors'
-    filter_params = {
-        'hasfollowingauthors=0': {
-            'authors__isnull': True
-        },
-        'hasfollowingauthors=1': {
-            'authors__isnull': False
+
+    def __init__(self, filter_params, *args, **kwargs):
+        self.filter_params = {
+            'hasfollowingauthors=0': {
+                'authors__isnull': True
+            },
+            'hasfollowingauthors=1': {
+                'authors__isnull': False
+            }
         }
-    }
+        super().__init__(self.filter_params, *args, **kwargs)
 
     def queryset(self, request, users):
-        if not self.value():
-            return users
-        return users.filter(
-            **self.filter_params[self.value()]
-        ).distinct()
+        super().queryset(request, users)
