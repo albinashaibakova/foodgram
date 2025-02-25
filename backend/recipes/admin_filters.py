@@ -9,9 +9,6 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
     def get_histogram(self, recipes):
         cooking_time = [recipe.cooking_time for recipe in recipes.all()]
-        if min(cooking_time) == max(cooking_time):
-            return recipes
-        cooking_time = [recipe.cooking_time for recipe in recipes.all()]
         hists, bins = np.histogram(cooking_time, bins=3)
         histogram_ranges = {
             '0': (round(bins[0]), round(bins[1])),
@@ -24,27 +21,24 @@ class CookingTimeFilter(admin.SimpleListFilter):
         recipes = model_admin.get_queryset(request)
         if not recipes:
             return None
-        try:
-            return [
+        cooking_time = [recipe.cooking_time for recipe in recipes.all()]
+        if min(cooking_time) == max(cooking_time):
+            return None
+        return [
                 (index, f'{range[0]} - {range[1]} минут')
                 for index, range in enumerate(
                     self.get_histogram(recipes)[1].values()
                 )
             ]
-        except IndexError:
-            return None
 
     def filter_by_range(self, recipes, range):
         return recipes.filter(cooking_time__range=range)
 
     def queryset(self, request, recipes):
-        try:
-            return self.filter_by_range(
+        return self.filter_by_range(
                 recipes=recipes,
                 range=self.get_histogram(recipes)[1][self.value()]
             )
-        except KeyError:
-            return recipes
 
 
 class CountFilter(admin.SimpleListFilter):
@@ -73,12 +67,11 @@ class HasRecipesFilter(CountFilter):
     }
 
     def queryset(self, request, users):
-        try:
-            return users.filter(
+        if not self.value():
+            return users
+        return users.filter(
                 **self.filter_params[self.value()]
             ).distinct()
-        except KeyError:
-            return users
 
 
 class HasFollowersFilter(CountFilter):
@@ -92,12 +85,11 @@ class HasFollowersFilter(CountFilter):
     }
 
     def queryset(self, request, users):
-        try:
-            return users.filter(
+        if not self.value():
+            return users
+        return users.filter(
                 **self.filter_params[self.value()]
             ).distinct()
-        except KeyError:
-            return users
 
 
 class HasFollowingAuthorsFilter(CountFilter):
@@ -113,9 +105,8 @@ class HasFollowingAuthorsFilter(CountFilter):
     }
 
     def queryset(self, request, users):
-        try:
-            return users.filter(
-                **self.filter_params[self.value()]
-            ).distinct()
-        except KeyError:
+        if not self.value():
             return users
+        return users.filter(
+            **self.filter_params[self.value()]
+        ).distinct()
