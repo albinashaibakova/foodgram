@@ -109,10 +109,12 @@ class UsersViewSet(UserViewSet):
                 f'Вы не можете повторно подписаться '
                 f'на пользователя {author.username}'
             )
-        return Response(AuthorFollowRepresentSerializer(
-            author,
-            context={'request': request}).data,
-                        status=status.HTTP_201_CREATED)
+        return Response(
+            AuthorFollowRepresentSerializer(
+                author,
+                context={'request': request}
+            ).data,
+            status=status.HTTP_201_CREATED)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
