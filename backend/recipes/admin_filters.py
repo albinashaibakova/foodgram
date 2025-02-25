@@ -99,7 +99,6 @@ class HasFollowersFilter(CountFilter):
     def queryset(self, request, users):
         return super().queryset(request, users)
 
-
 class HasFollowingAuthorsFilter(CountFilter):
     title = 'Есть подписки'
     parameter_name = 'hasfollowingauthors'
