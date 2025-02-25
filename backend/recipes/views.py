@@ -7,5 +7,5 @@ from rest_framework.exceptions import ValidationError
 
 def get_short_link(request, pk):
     if Recipe.objects(id=pk).exists():
-        return redirect(reverse('api:recipe-detail', args=[pk]))
-    raise ValidationError('Recipe does not exist')
+        return redirect(reverse('api:recipe/pk/', args=[pk]))
+    raise ValidationError(f'Рецепт по ключу {pk} не найден')
