@@ -104,9 +104,6 @@ class UsersViewSet(UserViewSet):
             user=user,
             author=author
         )
-        print(AuthorFollowRepresentSerializer(
-            author,
-            context={'request': request}).data)
         if not created:
             raise ValidationError(
                 f'Вы не можете повторно подписаться '
