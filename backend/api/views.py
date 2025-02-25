@@ -63,7 +63,7 @@ class UsersViewSet(UserViewSet):
             return Response(serializer.data,
                             status=status.HTTP_200_OK)
 
-        os.remove('media/' + str(request.user.avatar))
+        request.user.avatar.delete()
         serializer = UserAvatarSerializer(
             request.user,
             data={'avatar': None}
@@ -100,25 +100,24 @@ class UsersViewSet(UserViewSet):
         """Подписка на пользователя"""
         user = request.user
         author = get_object_or_404(User, id=kwargs['id'])
-        if request.method == 'POST':
-            if author == user:
-                raise ValidationError('Вы не можете подписаться на себя!')
-            try:
-                Follow.objects.create(user=user, author=author)
-                serializer = AuthorFollowRepresentSerializer(
-                    author,
-                    context={'request': request})
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            except IntegrityError:
-                return Response(
-                    {
-                        'error_message':
-                            'Вы уже подписаны на пользователя!'
-                    },
-                    status=status.HTTP_400_BAD_REQUEST)
-        get_object_or_404(Follow, user=user, author=author).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if request.method == 'DELETE':
+            get_object_or_404(Follow, user=user, author=author).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        if author == user:
+            raise ValidationError('Вы не можете подписаться на себя!')
+        follow, created = Follow.objects.get_or_create(
+            user=user,
+            author=author
+        )
+        if not created:
+            raise ValidationError(
+                f'Вы не можете повторно подписаться '
+                f'на пользователя {author.username}'
+            )
+        return Response(AuthorFollowRepresentSerializer(
+            author,
+            context={'request': request}).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
