@@ -8,45 +8,47 @@ class CookingTimeFilter(admin.SimpleListFilter):
     parameter_name = 'cooking_time'
 
     def __init__(self, request, lookup_params, model, model_admin):
-        self.cooking_time_ranges = self.get_histogram(model.objects.all())
+        self.cooking_time_ranges = self.get_histogram(
+            [obj.cooking_time for obj in model.objects.all()]
+        )
         super().__init__(request, lookup_params, model, model_admin)
 
-    def get_histogram(self, recipes):
-        cooking_time = [recipe.cooking_time for recipe in recipes.all()]
-        hists, bins = np.histogram(cooking_time, bins=3)
-        histogram_ranges = {
-            '0': (round(bins[0]), round(bins[1])),
-            '1': (round(bins[1]), round(bins[2])),
-            '2': (round(bins[2]), round(bins[3])),
+    def get_histogram(self, cooking_times):
+        hists, bins = np.histogram(cooking_times, bins=3)
+        return {
+            str(i): {
+                'range': (round(bins[i]), round(bins[i + 1])),
+                'quantity': hists[i]
+            }
+            for i in range(len(hists))
         }
-        return histogram_ranges
 
     def lookups(self, request, model_admin):
         recipes = model_admin.get_queryset(request)
-        if not recipes:
-            return None
-        cooking_time = [recipe.cooking_time for recipe in recipes.all()]
-        if min(cooking_time) == max(cooking_time):
+        cooking_times = [recipe.cooking_time for recipe in recipes.all()]
+        if not cooking_times or min(cooking_times) == max(cooking_times):
             return None
         return [
-            (index, f'{range[0]} - {range[1]} минут')
-            for index, range in enumerate(
-                self.cooking_time_ranges.values()
-            )
+            (index, f'{ranges["range"][0]} - {ranges["range"][1]} минут '
+                    f'({ranges["quantity"]})')
+            for index, ranges in self.get_histogram(cooking_times).items()
         ]
 
     def queryset(self, request, recipes):
         if not self.value():
             return recipes
         return recipes.filter(
-            cooking_time__range=self.cooking_time_ranges[self.value()]
+            cooking_time__range=self.cooking_time_ranges[self.value()]['range']
         )
 
 
 class CountFilter(admin.SimpleListFilter):
-    def __init__(self, filter_params, *args, **kwargs):
-        self.filter_params = filter_params
+    def __init__(self, *args, **kwargs):
+        self.filter_params = self.get_filter_params()
         super().__init__(*args, **kwargs)
+
+    def get_filter_params(self):
+        return {}
 
     def lookups(self, request, model_admin):
         return [
@@ -68,8 +70,8 @@ class HasRecipesFilter(CountFilter):
     title = 'Есть рецепты'
     parameter_name = 'hasrecipes'
 
-    def __init__(self, *args, **kwargs):
-        filter_params = {
+    def get_filter_params(self):
+        return {
             'hasrecipes=0': {
                 'recipes__isnull': True
             },
@@ -77,35 +79,27 @@ class HasRecipesFilter(CountFilter):
                 'recipes__isnull': False
             }
         }
-        super().__init__(filter_params, *args, **kwargs)
-
-    def queryset(self, request, users):
-        return super().queryset(request, users)
 
 
 class HasFollowersFilter(CountFilter):
     title = 'Есть подписчики'
     parameter_name = 'hasfollowers'
 
-    def __init__(self, *args, **kwargs):
-        filter_params = {
+    def get_filter_params(self):
+        return {
             'hasfollowers=0':
                 {'followers__isnull': True},
             'hasfollowers=1':
                 {'followers__isnull': False}
         }
-        super().__init__(filter_params, *args, **kwargs)
-
-    def queryset(self, request, users):
-        return super().queryset(request, users)
 
 
 class HasFollowingAuthorsFilter(CountFilter):
     title = 'Есть подписки'
     parameter_name = 'hasfollowingauthors'
 
-    def __init__(self, *args, **kwargs):
-        filter_params = {
+    def get_filter_params(self):
+        return {
             'hasfollowingauthors=0': {
                 'authors__isnull': True
             },
@@ -113,7 +107,3 @@ class HasFollowingAuthorsFilter(CountFilter):
                 'authors__isnull': False
             }
         }
-        super().__init__(filter_params, *args, **kwargs)
-
-    def queryset(self, request, users):
-        return super().queryset(request, users)

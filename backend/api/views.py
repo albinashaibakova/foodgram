@@ -1,20 +1,20 @@
 from datetime import date
 
 from django.contrib.auth import get_user_model
-from django.conf import settings
 from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import (permissions, pagination,
+from rest_framework import (permissions,
                             status, viewsets)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 
 from api.filtersets import IngredientFilter, RecipeFilterSet
+from api.pagination import FoodgramPaginator
 from api.permissions import IsOwnerOrReadOnly
 from api.serializers import (
     AuthorFollowRepresentSerializer,
@@ -29,11 +29,6 @@ from recipes.models import (
 
 
 User = get_user_model()
-
-
-class FoodgramPaginator(pagination.PageNumberPagination):
-    page_size_query_param = 'limit'
-    page_size = getattr(settings.REST_FRAMEWORK, 'PAGE_SIZE', 6)
 
 
 class UsersViewSet(UserViewSet):

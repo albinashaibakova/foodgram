@@ -15,7 +15,7 @@ class BaseImportCommand(BaseCommand):
         with open(json_file) as file:
             try:
                 created_objects = model.objects.bulk_create(
-                [model(**element) for element in json.load(file)],
+                    [model(**element) for element in json.load(file)],
                     ignore_conflicts=True
                 )
                 print('Объекты {model} ({number}) успешно загружены'.format(
