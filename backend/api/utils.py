@@ -19,8 +19,8 @@ def render_shopping_cart(recipes, ingredients):
     recipes_to_render = [
         recipes_template.format(
             index=index,
-            recipe_name=recipe[0],
-            recipe_author=recipe[1]
+            recipe_name=recipe.name,
+            recipe_author=recipe.author.username
         )
         for index, recipe in enumerate(recipes, start=1)
     ]

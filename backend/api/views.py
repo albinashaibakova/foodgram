@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
@@ -32,6 +33,7 @@ User = get_user_model()
 
 class FoodgramPaginator(pagination.PageNumberPagination):
     page_size_query_param = 'limit'
+    page_size = getattr(settings.REST_FRAMEWORK, 'PAGE_SIZE', 6)
 
 
 class UsersViewSet(UserViewSet):
@@ -52,7 +54,7 @@ class UsersViewSet(UserViewSet):
         """Смена аватарки"""
         if request.method == 'PUT':
             if 'avatar' not in request.data:
-                raise ValidationError('Загрузите аватар!')
+                raise ValidationError('Требуется загрузка аватара')
             serializer = UserAvatarSerializer(
                 request.user,
                 data=request.data)
@@ -101,15 +103,15 @@ class UsersViewSet(UserViewSet):
             get_object_or_404(Follow, user=user, author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         if author == user:
-            raise ValidationError('Вы не можете подписаться на себя!')
-        follow, created = Follow.objects.get_or_create(
+            raise ValidationError('Подписка на себя недопустима.')
+        _, created = Follow.objects.get_or_create(
             user=user,
             author=author
         )
         if not created:
             raise ValidationError(
-                f'Вы не можете повторно подписаться '
-                f'на пользователя {author.username}'
+                f'Повторная подписка на пользователя {author.username} '
+                f'недопустима'
             )
         return Response(
             AuthorFollowRepresentSerializer(
@@ -137,7 +139,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     def get_recipe_short_link(self, request, pk=None):
         if not Recipe.objects.filter(pk=pk).exists():
-            raise ValidationError('Рецепт не найден')
+            raise ValidationError(f'Рецепт по ключу {pk} не найден')
         return Response(
             data={'short-link': request.build_absolute_uri(
                 reverse('short_link', kwargs={'pk': pk})
@@ -151,7 +153,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     def favorite(self, request, *args, **kwargs):
         """Добавление в избранное"""
-        pk = kwargs.get('pk')
+        pk = kwargs['pk']
         if request.method == 'POST':
             return self.add_favorite_shopping_cart(
                 request,
@@ -170,7 +172,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=True)
     def shopping_cart(self, request, *args, **kwargs):
         """Добавление рецепта в корзину"""
-        pk = self.kwargs.get('pk')
+        pk = kwargs['pk']
         if request.method == 'POST':
             return self.add_favorite_shopping_cart(
                 request,
@@ -189,16 +191,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             detail=False)
     def download_shopping_cart(self, request, *args, **kwargs):
         """Скачивание ингредиентов для рецептов, добавленных в корзину"""
-        recipes = request.user.shoppingcarts.values_list(
-            'recipe__name',
-            'recipe__author__username'
-        )
+        recipes = [shoppingcart.recipe
+                   for shoppingcart in request.user.shoppingcarts.all()]
         ingredients = RecipeIngredient.objects.filter(
             recipe__shoppingcarts__user=request.user).values(
                 'recipe__name',
                 'ingredient__name',
                 'ingredient__measurement_unit').annotate(
-            quantity=Sum('amount')).order_by('amount')
+            quantity=Sum('amount')).order_by('recipe__name')
         shopping_list = render_shopping_cart(
             recipes,
             ingredients
@@ -224,7 +224,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def delete_favorite_shopping_cart(self, request, model, pk=None):
         """Функция для удаления рецепта из избранного или в корзины"""
-        get_object_or_404(model, id=pk).delete()
+        get_object_or_404(model,
+                          recipe=get_object_or_404(Recipe, id=pk),
+                          user=request.user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

@@ -33,5 +33,4 @@ class Base64ImageField(serializers.ImageField):
                     'Картинка не валидна'
                 )
             data = ContentFile(decoded_file, name=f'image.{ext}')
-
         return super().to_internal_value(data)
