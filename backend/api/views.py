@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import FileResponse
@@ -197,11 +199,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'ingredient__name',
                 'ingredient__measurement_unit').annotate(
             quantity=Sum('amount')).order_by('amount')
-        shopping_list, filename = render_shopping_cart(
-            self,
+        shopping_list = render_shopping_cart(
             recipes,
             ingredients
         )
+        filename = f'shopping_list_{date.today().strftime("%d-%m-%Y")}.txt'
         return FileResponse(shopping_list,
                             filename=filename,
                             content_type='text/plain')
