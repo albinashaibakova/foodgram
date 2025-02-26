@@ -125,7 +125,6 @@ if DATABASE_TYPE == 'sqlite3':
 else:
     DATABASES = DATABASE_POSTGRES
 
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 

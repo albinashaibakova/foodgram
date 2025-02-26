@@ -5,6 +5,7 @@ from recipes.models import Ingredient
 
 class Command(BaseImportCommand):
     """Команда для заполнения БД ингредиентами из файла формата JSON"""
+    model = Ingredient
 
-    def handle(self, model=None, **kwargs):
-        super().handle(model=Ingredient, **kwargs)
+    def handle(self, model=model, **kwargs):
+        super().handle(model, **kwargs)

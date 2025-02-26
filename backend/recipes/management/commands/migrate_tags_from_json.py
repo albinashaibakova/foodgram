@@ -5,6 +5,7 @@ from recipes.models import Tag
 
 class Command(BaseImportCommand):
     """Команда для заполнения БД тэгами из файла формата JSON"""
+    model = Tag
 
-    def handle(self, model=None, **kwargs):
-        super().handle(model=Tag, **kwargs)
+    def handle(self, model=model, **kwargs):
+        super().handle(model, **kwargs)
