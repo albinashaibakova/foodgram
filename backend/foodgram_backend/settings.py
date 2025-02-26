@@ -118,12 +118,13 @@ DATABASE_POSTGRES = {
     }
 }
 
-DATABASE_TYPE = os.getenv('DATABASE_TYPE', 'sqlite3')
+DATABASE_TYPE = os.getenv('DATABASE_TYPE', 'postgres')
 
-if DATABASE_TYPE == 'postgres':
-    DATABASES = DATABASE_POSTGRES
-else:
+if DATABASE_TYPE == 'sqlite3':
     DATABASES = DATABASE_SQLITE
+else:
+    DATABASES = DATABASE_POSTGRES
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

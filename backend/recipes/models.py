@@ -195,7 +195,6 @@ class RecipeUserBaseModel(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='%(class)ss',
         verbose_name='Рецепт'
     )
     user = models.ForeignKey(
@@ -214,7 +213,8 @@ class RecipeUserBaseModel(models.Model):
             name='unique_user_%(class)s')]
 
     def __str__(self):
-        return self.recipe.name
+        return (f'Рецепт {self.recipe.name} добавлен '
+                f'пользователем {self.user.username}')
 
 
 class Favorite(RecipeUserBaseModel):
