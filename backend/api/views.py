@@ -219,8 +219,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def delete_favorite_shopping_cart(self, request, model, pk=None):
         """Функция для удаления рецепта из избранного или в корзины"""
-        get_object_or_404(model,
-                          recipe=get_object_or_404(Recipe, id=pk),
+        get_object_or_404(model, recipe_id=pk,
                           user=request.user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

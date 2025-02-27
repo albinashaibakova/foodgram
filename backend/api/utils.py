@@ -1,7 +1,7 @@
 from datetime import date
 
-ingredients_template = '{index}) {name} - {quantity} ({measure_unit})'
-recipes_template = '{index}) Рецепт: {recipe_name}.  @{recipe_author}'
+ingredients_template = '{INDEX}) {NAME} - {QUANTITY} ({MEASURE_UNIT})'
+recipes_template = '{INDEX}) {NAME}.  @{AUTHOR}'
 
 
 def render_shopping_cart(recipes, ingredients):
@@ -9,18 +9,18 @@ def render_shopping_cart(recipes, ingredients):
     today = date.today().strftime('%d-%m-%Y')
     ingredients_to_render = [
         ingredients_template.format(
-            index=index,
-            name=ingredient['ingredient__name'].capitalize(),
-            quantity=ingredient['quantity'],
-            measure_unit=ingredient['ingredient__measurement_unit']
+            INDEX=index,
+            NAME=ingredient['ingredient__name'].capitalize(),
+            QUANTITY=ingredient['quantity'],
+            MEASURE_UNIT=ingredient['ingredient__measurement_unit']
         )
         for index, ingredient in enumerate(ingredients, start=1)
     ]
     recipes_to_render = [
         recipes_template.format(
-            index=index,
-            recipe_name=recipe.name,
-            recipe_author=recipe.author.username
+            INDEX=index,
+            NAME=recipe.name,
+            AUTHOR=recipe.author.username
         )
         for index, recipe in enumerate(recipes, start=1)
     ]
