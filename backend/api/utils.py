@@ -27,7 +27,7 @@ def render_shopping_cart(recipes, ingredients):
     shopping_list = '\n'.join(
         [
             'Список покупок на: {today}'.format(today=today),
-            'Ингредиенты',
+            'Продукты',
             *ingredients_to_render,
             'Рецепты',
             *recipes_to_render

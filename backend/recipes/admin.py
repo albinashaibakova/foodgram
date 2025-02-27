@@ -12,6 +12,7 @@ from recipes.models import (
 )
 from recipes.admin_filters import (
     CookingTimeFilter,
+    IsInRecipesFilter,
     HasFollowersFilter,
     HasFollowingAuthorsFilter,
     HasRecipesFilter
@@ -23,13 +24,11 @@ admin.site.unregister(Group)
 
 
 class RecipeIngredientInline(admin.TabularInline):
-
     model = RecipeIngredient
     min_num = 1
 
 
 class RecipesCountMixin:
-
     @admin.display(description='Рецепты')
     def recipes_count(self, obj):
         return obj.recipes.count()
@@ -75,11 +74,15 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
 
 
 @admin.register(Ingredient)
-class IngredientAdmin(RecipesCountMixin, admin.ModelAdmin):
+class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit', 'recipes_count')
-    search_fields = ('name',)
-    list_filter = ('measurement_unit', )
+    search_fields = ('name', 'measurement_unit')
+    list_filter = ('measurement_unit', IsInRecipesFilter)
     list_per_page = 25
+
+    @admin.display(description='Рецепты')
+    def recipes_count(self, ingredient):
+        return ingredient.recipeingredients.count()
 
 
 @admin.register(Tag)
@@ -119,7 +122,6 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Продукты')
     @mark_safe
     def display_ingredients(self, recipe):
-
         return '<br>'.join(
             '{name} - {amount}' '{measurement_unit}'.format(
                 name=recipeingredient.ingredient.name.capitalize(),
@@ -131,7 +133,6 @@ class RecipeAdmin(admin.ModelAdmin):
     @mark_safe
     @admin.display(description='Тэги', )
     def display_tags(self, recipe):
-
         return '<br>'.join(tag.name for tag in recipe.tags.all())
 
     fieldsets = (
