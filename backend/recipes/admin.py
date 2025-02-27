@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
@@ -71,6 +72,70 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
     @admin.display(description='Подписчики')
     def followers_count(self, user):
         return user.followers.count()
+
+    @admin.display(description='Рецепты')
+    @mark_safe
+    def recipes_list(self, user):
+        return '<br>'.join([recipe.name for recipe in user.recipes.all()])
+
+    @admin.display(description='Подписки')
+    @mark_safe
+    def following_authors_list(self, user):
+        return '<br>'.join(
+            [follow.author.username for follow in user.followers.all()]
+        )
+
+    @admin.display(description='Подписчики')
+    @mark_safe
+    def followers_list(self, user):
+        return '<br>'.join(
+            [follow.user.username for follow in user.authors.all()]
+        )
+
+    fieldsets = (
+        (
+            None,
+            {
+                'fields': (
+                    'username',
+                    'email',
+                    'password',
+                    ('first_name', 'last_name'),
+                    'avatar',
+                )
+            },
+        ),
+        ('Рецепты',
+         {
+             'fields': (
+                 'recipes_list',
+             ),
+             'classes': ('collapse',),
+         }
+         ),
+        ('Подписки',
+         {
+             'fields': (
+                 'following_authors_list',
+             ),
+             'classes': ('collapse',),
+         }
+         ),
+        ('Подписчики',
+         {
+             'fields': (
+                 'followers_list',
+             ),
+             'classes': ('collapse',),
+         }
+         )
+    )
+
+    readonly_fields = (
+        'recipes_list',
+        'following_authors_list',
+        'followers_list'
+    )
 
 
 @admin.register(Ingredient)
