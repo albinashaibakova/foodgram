@@ -189,11 +189,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipes = [shoppingcart.recipe
                    for shoppingcart in request.user.shoppingcarts.all()]
         ingredients = RecipeIngredient.objects.filter(
-            recipe__shoppingcarts__user=request.user).values(
-                'recipe__name',
-                'ingredient__name',
-                'ingredient__measurement_unit').annotate(
-            quantity=Sum('amount')).order_by('recipe__name')
+            recipe__shoppingcarts__user=request.user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(
+            quantity=Sum('amount')
+        ).order_by('ingredient__name')
         shopping_list = render_shopping_cart(
             recipes,
             ingredients
