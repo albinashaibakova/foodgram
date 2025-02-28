@@ -32,6 +32,8 @@ class RecipeIngredientInline(admin.TabularInline):
 class RecipesCountMixin:
     @admin.display(description='Рецепты')
     def recipes_count(self, obj):
+        if isinstance(obj, Ingredient):
+            return obj.recipeingredients.count()
         return obj.recipes.count()
 
 
@@ -67,11 +69,11 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
 
     @admin.display(description='Подписки')
     def following_authors_count(self, user):
-        return user.authors.count()
+        return user.subscriptions.count()
 
     @admin.display(description='Подписчики')
     def followers_count(self, user):
-        return user.followers.count()
+        return user.subscribers.count()
 
     @admin.display(description='Рецепты')
     @mark_safe
@@ -82,15 +84,15 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
     @mark_safe
     def following_authors_list(self, user):
         return '<br>'.join(
-            author.username for author in user.user.followers.all()
-        )
+            follow.author.username for follow in user.subscriptions.all()
+        ) if user.subscriptions.all() else 'Нет подписок'
 
     @admin.display(description='Подписчики')
     @mark_safe
     def followers_list(self, user):
         return '<br>'.join(
-            follow.user.username for follow in user.authors.all()
-        )
+            follow.user.username for follow in user.subscribers.all()
+        ) if user.subscribers.all() else 'Нет подписчиков'
 
     fieldsets = (
         (
@@ -139,15 +141,11 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
 
 
 @admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
+class IngredientAdmin(RecipesCountMixin, admin.ModelAdmin):
     list_display = ('name', 'measurement_unit', 'recipes_count')
     search_fields = ('name', 'measurement_unit')
     list_filter = ('measurement_unit', IsInRecipesFilter)
     list_per_page = 25
-
-    @admin.display(description='Рецепты')
-    def recipes_count(self, ingredient):
-        return ingredient.recipeingredients.count()
 
 
 @admin.register(Tag)

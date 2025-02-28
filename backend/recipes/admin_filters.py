@@ -23,6 +23,7 @@ class CookingTimeFilter(admin.SimpleListFilter):
                 'quantity': hists[2]
             }
         }
+
     def get_two_unique_cooking_times(self, unique_cooking_times):
         return {
             str(i): {
