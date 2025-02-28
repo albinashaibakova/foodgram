@@ -25,6 +25,7 @@ admin.site.unregister(Group)
 
 class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
+    extra = 1
     min_num = 1
 
 
@@ -75,20 +76,20 @@ class FoodgramUserAdmin(RecipesCountMixin, UserAdmin):
     @admin.display(description='Рецепты')
     @mark_safe
     def recipes_list(self, user):
-        return '<br>'.join([recipe.name for recipe in user.recipes.all()])
+        return '<br>'.join(recipe.name for recipe in user.recipes.all())
 
     @admin.display(description='Подписки')
     @mark_safe
     def following_authors_list(self, user):
         return '<br>'.join(
-            [follow.author.username for follow in user.followers.all()]
+            author.username for author in user.user.followers.all()
         )
 
     @admin.display(description='Подписчики')
     @mark_safe
     def followers_list(self, user):
         return '<br>'.join(
-            [follow.user.username for follow in user.authors.all()]
+            follow.user.username for follow in user.authors.all()
         )
 
     fieldsets = (
@@ -161,16 +162,20 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'name',
-        'cooking_time',
+        'short_cooking_time',
         'author',
         'display_tags',
         'is_favorite_count',
         'display_ingredients',
         'recipe_image')
-    search_fields = ('name', 'author', 'tags')
+    search_fields = ('name', 'author__username', 'tags__name')
     list_filter = ('tags', 'author', CookingTimeFilter)
     list_per_page = 25
     inlines = [RecipeIngredientInline]
+
+    @admin.display(description='Время (мин)')
+    def short_cooking_time(self, recipe):
+        return recipe.cooking_time
 
     @admin.display(description='В избранном')
     def is_favorite_count(self, recipe):
@@ -220,8 +225,7 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
     list_display = (
         'ingredient',
         'recipe',
-        'amount'
-    )
+        'amount')
     list_filter = ('ingredient',)
     search_fields = ('recipe',)
     list_per_page = 25

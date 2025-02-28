@@ -10,31 +10,55 @@ class CookingTimeFilter(admin.SimpleListFilter):
     def get_histogram(self, cooking_times):
         hists, bins = np.histogram(cooking_times, bins=3)
         return {
-            str(i): {
-                'range': (round(bins[i]), round(bins[i + 1])),
-                'quantity': hists[i]
+            '0': {
+                'range': (round(bins[0]), round(bins[1]) - 1),
+                'quantity': hists[0]
+            },
+            '1': {
+                'range': (round(bins[1]), round(bins[2]) - 1),
+                'quantity': hists[1]
+            },
+            '2': {
+                'range': (round(bins[2]), round(bins[-1])),
+                'quantity': hists[2]
             }
-            for i in range(len(hists))
+        }
+    def get_two_unique_cooking_times(self, unique_cooking_times):
+        return {
+            str(i): {
+                'range': (unique_cooking_times[i], unique_cooking_times[i])
+            }
+            for i in range(len(unique_cooking_times))
         }
 
     def lookups(self, request, model_admin):
         recipes = model_admin.get_queryset(request)
         cooking_times = [recipe.cooking_time for recipe in recipes.all()]
-        if not cooking_times or min(cooking_times) == max(cooking_times):
+        unique_cooking_times = sorted(set(cooking_times))
+        if len(unique_cooking_times) < 2:
             return None
+        if len(unique_cooking_times) == 2:
+            self.cooking_time_ranges = self.get_two_unique_cooking_times(
+                unique_cooking_times
+            )
+            return [
+                (str(i),
+                 f'{time} минут ({recipes.filter(cooking_time=time).count()})')
+                for i, time in enumerate(unique_cooking_times)
+            ]
+        self.cooking_time_ranges = self.get_histogram(cooking_times)
         return [
-            (index, f'{ranges["range"][0]} - {ranges["range"][1] - 1} минут '
+            (index, f'{ranges["range"][0]} - {ranges["range"][1]} минут '
                     f'({ranges["quantity"]})')
-            for index, ranges in self.get_histogram(cooking_times).items()
+            for index, ranges in self.cooking_time_ranges.items()
         ]
 
     def queryset(self, request, recipes):
         if not self.value():
             return recipes
+        cooking_time_range = self.cooking_time_ranges[self.value()]['range']
         return recipes.filter(
-            cooking_time__range=self.get_histogram(
-                [recipe.cooking_time for recipe in recipes.all()]
-            )[self.value()]['range']
+            cooking_time__range=cooking_time_range
         )
 
 

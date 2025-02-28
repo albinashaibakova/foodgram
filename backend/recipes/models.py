@@ -8,7 +8,6 @@ FIST_NAME_MAX_LENGTH = 150
 LAST_NAME_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 256
 MAX_STR_VALUE_LENGTH = 10
-ROLE_MAX_LENGTH = 15
 PASSWORD_MAX_LENGTH = 200
 
 NAME_MAX_LENGTH = 256
@@ -17,7 +16,7 @@ TAG_MAX_LENGTH = 32
 INGREDIENT_MAX_LENGTH = 128
 MEASURE_MAX_LENGTH = 64
 COOKING_TIME_MIN = 1
-MAX_REPR_LENGTH_TAG_INGREDIENT = 10
+MAX_REPR_LENGTH_TAG_INGREDIENT = 40
 MAX_REPR_LENGTH_RECIPE = 20
 MIN_AMOUNT = 1
 
@@ -124,7 +123,7 @@ class Ingredient(models.Model):
         ]
 
     def __str__(self):
-        return self.name[:MAX_REPR_LENGTH_TAG_INGREDIENT]
+        return f'{self.name} ({self.measurement_unit})'
 
 
 class Recipe(models.Model):
